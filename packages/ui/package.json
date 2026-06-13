@@ -3,7 +3,12 @@
   "version": "0.0.0",
   "private": true,
   "exports": {
-    "./*": "./src/*.tsx"
+    "./styles.css": "./styles.css",
+    "./button": {
+      "react-native": "./src/button/button.mobile.tsx",
+      "types": "./src/button/button.web.tsx",
+      "default": "./src/button/button.web.tsx"
+    }
   },
   "scripts": {
     "lint": "eslint . --max-warnings 0",
@@ -17,10 +22,23 @@
     "@types/react": "19.2.2",
     "@types/react-dom": "19.2.2",
     "eslint": "^9.39.1",
+    "react-native": "0.85.3",
     "typescript": "5.9.2"
   },
   "dependencies": {
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0"
+    "react": "^19.2.0"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-native": ">=0.79.0"
+  },
+  "peerDependenciesMeta": {
+    "react-dom": {
+      "optional": true
+    },
+    "react-native": {
+      "optional": true
+    }
   }
 }
