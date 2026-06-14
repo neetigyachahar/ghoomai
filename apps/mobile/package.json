@@ -3,7 +3,8 @@
   "main": "expo-router/entry",
   "version": "1.0.0",
   "dependencies": {
-    "@repo/ui": "*",
+    "@repo/hooks": "*",
+    "@repo/widgets": "*",
     "@expo/ui": "~56.0.17",
     "expo": "~56.0.11",
     "expo-constants": "~56.0.18",

@@ -15,7 +15,8 @@
       "version": "1.0.0",
       "dependencies": {
         "@expo/ui": "~56.0.17",
-        "@repo/ui": "*",
+        "@repo/hooks": "*",
+        "@repo/widgets": "*",
         "expo": "~56.0.11",
         "expo-constants": "~56.0.18",
         "expo-device": "~56.0.4",
@@ -48,7 +49,8 @@
       "name": "web",
       "version": "0.1.0",
       "dependencies": {
-        "@repo/ui": "*",
+        "@repo/hooks": "*",
+        "@repo/widgets": "*",
         "next": "16.2.9",
         "react": "19.2.4",
         "react-dom": "19.2.4",
@@ -81,6 +83,24 @@
         "typescript-eslint": "^8.50.0",
       },
     },
+    "packages/hooks": {
+      "name": "@repo/hooks",
+      "version": "0.0.0",
+      "dependencies": {
+        "react": "^19.2.0",
+      },
+      "devDependencies": {
+        "@repo/eslint-config": "*",
+        "@repo/typescript-config": "*",
+        "@types/node": "^22.15.3",
+        "@types/react": "19.2.2",
+        "eslint": "^9.39.1",
+        "typescript": "5.9.2",
+      },
+      "peerDependencies": {
+        "react": "^19.0.0",
+      },
+    },
     "packages/typescript-config": {
       "name": "@repo/typescript-config",
       "version": "0.0.0",
@@ -108,6 +128,31 @@
       },
       "optionalPeers": [
         "react-dom",
+        "react-native",
+      ],
+    },
+    "packages/widgets": {
+      "name": "@repo/widgets",
+      "version": "0.0.0",
+      "dependencies": {
+        "@repo/hooks": "*",
+        "@repo/ui": "*",
+        "react": "^19.2.0",
+      },
+      "devDependencies": {
+        "@repo/eslint-config": "*",
+        "@repo/typescript-config": "*",
+        "@types/node": "^22.15.3",
+        "@types/react": "19.2.2",
+        "eslint": "^9.39.1",
+        "react-native": "0.85.3",
+        "typescript": "5.9.2",
+      },
+      "peerDependencies": {
+        "react": "^19.0.0",
+        "react-native": ">=0.79.0",
+      },
+      "optionalPeers": [
         "react-native",
       ],
     },
@@ -541,9 +586,13 @@
 
     "@repo/eslint-config": ["@repo/eslint-config@workspace:packages/eslint-config"],
 
+    "@repo/hooks": ["@repo/hooks@workspace:packages/hooks"],
+
     "@repo/typescript-config": ["@repo/typescript-config@workspace:packages/typescript-config"],
 
     "@repo/ui": ["@repo/ui@workspace:packages/ui"],
+
+    "@repo/widgets": ["@repo/widgets@workspace:packages/widgets"],
 
     "@rtsao/scc": ["@rtsao/scc@1.1.0", "", {}, "sha512-zt6OdqaDoOnJ1ZYsCYGt9YmWzDXl4vQdKTyJev62gFhRGKdx7mcT54V9KIjg+d2wi9EXsPvAPKe7i7WjfVWB8g=="],
 

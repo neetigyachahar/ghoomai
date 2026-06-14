@@ -1,8 +1,9 @@
 import * as Device from 'expo-device';
-import { Alert, Platform, StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { Button } from '@repo/ui/button';
+import { DemoBookingProvider } from '@repo/hooks/demo';
+import { ContentRenderer, type ContentItem } from '@repo/widgets';
 
 import { AnimatedIcon } from '@/components/animated-icon';
 import { HintRow } from '@/components/hint-row';
@@ -30,6 +31,19 @@ function getDevMenuHint() {
   );
 }
 
+const widgetContent: ContentItem = {
+  key: 'demo-section',
+  props: { title: 'Ghoomai Widgets (Mobile)' },
+  children: {
+    children: [
+      { key: 'demo-action', props: { label: 'Book a hotel', action: 'book' }, children: null },
+    ],
+    footer: [
+      { key: 'demo-action', props: { label: 'Learn more', action: 'info' }, children: null },
+    ],
+  },
+};
+
 export default function HomeScreen() {
   return (
     <ThemedView style={styles.container}>
@@ -45,9 +59,9 @@ export default function HomeScreen() {
           get started
         </ThemedText>
 
-        <Button onPress={() => Alert.alert('Shared UI', 'Hello from @repo/ui (mobile)!')}>
-          Shared UI Button
-        </Button>
+        <DemoBookingProvider>
+          <ContentRenderer content={widgetContent} />
+        </DemoBookingProvider>
 
         <ThemedView type="backgroundElement" style={styles.stepContainer}>
           <HintRow

@@ -1,13 +1,9 @@
-import Image from "next/image";
-
-import { DemoButton } from "./demo-button";
+import { DemoWidget } from "./demo-widget";
 
 export default function Home() {
   return (
-    <div className="">
-
-      < DemoButton />
-
-    </div >
+    <div className="p-8">
+      <DemoWidget />
+    </div>
   );
 }

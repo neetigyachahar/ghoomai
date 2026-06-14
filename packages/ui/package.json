@@ -8,6 +8,16 @@
       "react-native": "./src/button/button.mobile.tsx",
       "types": "./src/button/button.web.tsx",
       "default": "./src/button/button.web.tsx"
+    },
+    "./box": {
+      "react-native": "./src/box/box.mobile.tsx",
+      "types": "./src/box/box.web.tsx",
+      "default": "./src/box/box.web.tsx"
+    },
+    "./text": {
+      "react-native": "./src/text/text.mobile.tsx",
+      "types": "./src/text/text.web.tsx",
+      "default": "./src/text/text.web.tsx"
     }
   },
   "scripts": {
