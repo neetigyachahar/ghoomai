@@ -1,7 +1,11 @@
 export type {
   ContentChildren,
   ContentItem,
+  WidgetAIMetadata,
   WidgetComponent,
+  WidgetPropDefinition,
+  WidgetRegistryEntry,
+  WidgetSlotDefinition,
 } from "./types";
-export { widgetRegistry } from "./registry";
+export { getWidgetRegistry, getWidgetRegistryForAI } from "./registry";
 export { ContentRenderer, renderContentItem } from "./renderer";

@@ -3,7 +3,7 @@
 
 import { Fragment, type ReactNode } from "react";
 
-import { widgetRegistry } from "./registry";
+import { getWidgetRegistry } from "./registry";
 import type { ContentChildren, ContentItem } from "./types";
 
 function renderContentItems(
@@ -37,7 +37,7 @@ function renderSlotChildren(
 }
 
 export function renderContentItem(item: ContentItem): ReactNode {
-  const Widget = widgetRegistry[item.key];
+  const Widget = getWidgetRegistry()[item.key];
 
   if (!Widget) {
     console.warn(`Unknown widget: ${item.key}`);
