@@ -22,11 +22,13 @@ export interface AIContextValue {
   status: AIStatus;
   messages: AIMessage[];
   pendingQuestion: string | null;
+  pendingOptions: string[];
   generatedLayout: ContentItem | null;
   error: string | null;
   setStatus: (status: AIStatus) => void;
   setMessages: React.Dispatch<React.SetStateAction<AIMessage[]>>;
   setPendingQuestion: (question: string | null) => void;
+  setPendingOptions: (options: string[]) => void;
   setGeneratedLayout: (layout: ContentItem | null) => void;
   setError: (error: string | null) => void;
   callServer: (messages: AIMessage[]) => Promise<WidgetAIResponse>;
@@ -49,6 +51,7 @@ export function AIProvider({
   const [status, setStatus] = useState<AIStatus>("idle");
   const [messages, setMessages] = useState<AIMessage[]>([]);
   const [pendingQuestion, setPendingQuestion] = useState<string | null>(null);
+  const [pendingOptions, setPendingOptions] = useState<string[]>([]);
   const [generatedLayout, setGeneratedLayout] = useState<ContentItem | null>(
     null,
   );
@@ -81,6 +84,7 @@ export function AIProvider({
     setStatus("idle");
     setMessages([]);
     setPendingQuestion(null);
+    setPendingOptions([]);
     setGeneratedLayout(null);
     setError(null);
   }, []);
@@ -92,11 +96,13 @@ export function AIProvider({
       status,
       messages,
       pendingQuestion,
+      pendingOptions,
       generatedLayout,
       error,
       setStatus,
       setMessages,
       setPendingQuestion,
+      setPendingOptions,
       setGeneratedLayout,
       setError,
       callServer,
@@ -108,6 +114,7 @@ export function AIProvider({
       status,
       messages,
       pendingQuestion,
+      pendingOptions,
       generatedLayout,
       error,
       callServer,

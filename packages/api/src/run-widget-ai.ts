@@ -1,4 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
+import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
+import type { BetaMessageParam } from "@anthropic-ai/sdk/resources/beta/messages/messages";
+import type { MessageParam } from "@anthropic-ai/sdk/resources/messages/messages";
 
 import type {
   AIMessage,
@@ -8,10 +11,16 @@ import type {
 
 import { buildSystemPrompt } from "./internal/build-prompt";
 import { parseWidgetAIResponse } from "./internal/parse-ai-response";
+import { questionResponseSchema } from "./internal/question-response-schema";
 import { travelTools } from "./tools/travel-tools";
 
-const ANTHROPIC_MODEL = "claude-sonnet-4-6";
+// Demo / production — swap back for real demos
+// const ANTHROPIC_MODEL = "claude-sonnet-4-6";
+// Dev — cheaper for local iteration
+const ANTHROPIC_MODEL = "claude-haiku-4-5";
 const MAX_TOOL_ITERATIONS = 12;
+
+const QUESTION_OUTPUT_FORMAT = zodOutputFormat(questionResponseSchema);
 
 export interface RunWidgetAIInput {
   apiKey: string;
@@ -34,16 +43,26 @@ function extractResponseText(
   return textBlocks.map((block) => block.text).join("\n").trim();
 }
 
+function conversationUsedTools(messages: BetaMessageParam[]): boolean {
+  return messages.some(
+    (message) =>
+      message.role === "assistant" &&
+      Array.isArray(message.content) &&
+      message.content.some((block) => block.type === "tool_use"),
+  );
+}
+
 export async function runWidgetAI(
   input: RunWidgetAIInput,
 ): Promise<WidgetAIResponse> {
   const client = new Anthropic({ apiKey: input.apiKey });
+  const system = buildSystemPrompt(input.widgetRegistry);
 
   const runner = client.beta.messages.toolRunner({
     model: ANTHROPIC_MODEL,
     max_tokens: 4096,
     max_iterations: MAX_TOOL_ITERATIONS,
-    system: buildSystemPrompt(input.widgetRegistry),
+    system,
     messages: input.messages.map((message) => ({
       role: message.role,
       content: message.content,
@@ -52,7 +71,30 @@ export async function runWidgetAI(
   });
 
   const finalMessage = await runner.runUntilDone();
-  const text = extractResponseText(finalMessage.content);
+  const conversationMessages = runner.params.messages;
 
-  return parseWidgetAIResponse(text);
+  if (conversationUsedTools(conversationMessages)) {
+    return parseWidgetAIResponse(extractResponseText(finalMessage.content));
+  }
+
+  const messagesForParse =
+    conversationMessages.at(-1)?.role === "assistant"
+      ? conversationMessages.slice(0, -1)
+      : conversationMessages;
+
+  const parsed = await client.messages.parse({
+    model: ANTHROPIC_MODEL,
+    max_tokens: 4096,
+    system,
+    messages: messagesForParse as MessageParam[],
+    output_config: {
+      format: QUESTION_OUTPUT_FORMAT,
+    },
+  });
+
+  if (!parsed.parsed_output) {
+    throw new Error("AI response did not match expected schema");
+  }
+
+  return parsed.parsed_output;
 }

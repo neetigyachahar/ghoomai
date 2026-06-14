@@ -10,6 +10,18 @@
   }
 
   body {
-    @apply bg-white text-zinc-900 antialiased;
+    @apply text-stone-900 antialiased;
+    background-color: #f8f7f4;
+  }
+}
+
+@keyframes questionSheetIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }

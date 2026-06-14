@@ -4,6 +4,7 @@
   "private": true,
   "exports": {
     "./styles.css": "./styles.css",
+    "./theme": "./src/theme/colors.ts",
     "./button": {
       "react-native": "./src/button/button.mobile.tsx",
       "types": "./src/button/button.web.tsx",
@@ -14,6 +15,11 @@
       "types": "./src/box/box.web.tsx",
       "default": "./src/box/box.web.tsx"
     },
+    "./scroll-box": {
+      "react-native": "./src/scroll-box/scroll-box.mobile.tsx",
+      "types": "./src/scroll-box/scroll-box.web.tsx",
+      "default": "./src/scroll-box/scroll-box.web.tsx"
+    },
     "./input": {
       "react-native": "./src/input/input.mobile.tsx",
       "types": "./src/input/input.web.tsx",
@@ -23,6 +29,31 @@
       "react-native": "./src/text/text.mobile.tsx",
       "types": "./src/text/text.web.tsx",
       "default": "./src/text/text.web.tsx"
+    },
+    "./brand-mark": {
+      "react-native": "./src/brand-mark/brand-mark.mobile.tsx",
+      "types": "./src/brand-mark/brand-mark.web.tsx",
+      "default": "./src/brand-mark/brand-mark.web.tsx"
+    },
+    "./option-chip": {
+      "react-native": "./src/option-chip/option-chip.mobile.tsx",
+      "types": "./src/option-chip/option-chip.web.tsx",
+      "default": "./src/option-chip/option-chip.web.tsx"
+    },
+    "./prompt-bar": {
+      "react-native": "./src/prompt-bar/prompt-bar.mobile.tsx",
+      "types": "./src/prompt-bar/prompt-bar.web.tsx",
+      "default": "./src/prompt-bar/prompt-bar.web.tsx"
+    },
+    "./question-sheet": {
+      "react-native": "./src/question-sheet/question-sheet.mobile.tsx",
+      "types": "./src/question-sheet/question-sheet.web.tsx",
+      "default": "./src/question-sheet/question-sheet.web.tsx"
+    },
+    "./send-arrow-icon": {
+      "react-native": "./src/send-arrow-icon/send-arrow-icon.mobile.tsx",
+      "types": "./src/send-arrow-icon/send-arrow-icon.web.tsx",
+      "default": "./src/send-arrow-icon/send-arrow-icon.web.tsx"
     }
   },
   "scripts": {
@@ -38,6 +69,7 @@
     "@types/react-dom": "19.2.2",
     "eslint": "^9.39.1",
     "react-native": "0.85.3",
+    "react-native-svg": "15.15.5",
     "typescript": "5.9.2"
   },
   "dependencies": {
@@ -46,7 +78,8 @@
   "peerDependencies": {
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "react-native": ">=0.79.0"
+    "react-native": ">=0.79.0",
+    "react-native-svg": ">=15.0.0"
   },
   "peerDependenciesMeta": {
     "react-dom": {

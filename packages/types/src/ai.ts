@@ -12,6 +12,12 @@ export type AIMessage = {
   content: string;
 };
 
+export type AIQuestion = {
+  type: "question";
+  question: string;
+  options?: string[];
+};
+
 export type WidgetAIResponse =
-  | { type: "question"; question: string }
+  | AIQuestion
   | { type: "layout"; layout: ContentItem };

@@ -73,8 +73,18 @@ export function parseWidgetAIResponse(text: string): WidgetAIResponse {
     );
   }
 
-  if (parsed.type === "question" && !parsed.question) {
-    throw new Error("AI response missing question");
+  if (parsed.type === "question") {
+    if (!parsed.question) {
+      throw new Error("AI response missing question");
+    }
+
+    if (
+      parsed.options !== undefined &&
+      (!Array.isArray(parsed.options) ||
+        parsed.options.some((option) => typeof option !== "string"))
+    ) {
+      throw new Error("AI response options must be an array of strings");
+    }
   }
 
   if (parsed.type === "layout" && !parsed.layout) {

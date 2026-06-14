@@ -7,7 +7,7 @@ export default function Home() {
   const router = useRouter();
 
   return (
-    <main className="flex flex-1 items-center justify-center px-4 py-8">
+    <main className="flex min-h-dvh w-full flex-1">
       <AiPromptScreen onNavigateToResult={() => router.push("/result")} />
     </main>
   );

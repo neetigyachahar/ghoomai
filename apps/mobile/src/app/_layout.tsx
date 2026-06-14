@@ -1,6 +1,7 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from 'expo-router';
 import { Stack } from 'expo-router';
 import { useColorScheme } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { AiFlowShell } from '@repo/widgets/screens/ai-flow';
 
@@ -13,10 +14,12 @@ export default function RootLayout() {
   const colorScheme = useColorScheme();
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <AiFlowShell apiEndpoint={API_ENDPOINT} apiBase={API_BASE}>
-        <Stack screenOptions={{ headerShown: false }} />
-      </AiFlowShell>
-    </ThemeProvider>
+    <SafeAreaProvider>
+      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+        <AiFlowShell apiEndpoint={API_ENDPOINT} apiBase={API_BASE}>
+          <Stack screenOptions={{ headerShown: false }} />
+        </AiFlowShell>
+      </ThemeProvider>
+    </SafeAreaProvider>
   );
 }

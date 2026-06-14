@@ -21,11 +21,13 @@ export function useAi(options: UseAiOptions = {}) {
   const {
     status,
     pendingQuestion,
+    pendingOptions,
     error,
     messages,
     setStatus,
     setMessages,
     setPendingQuestion,
+    setPendingOptions,
     setGeneratedLayout,
     setError,
     callServer,
@@ -38,6 +40,7 @@ export function useAi(options: UseAiOptions = {}) {
 
       if (response.type === "question") {
         setPendingQuestion(response.question);
+        setPendingOptions(response.options ?? []);
         setMessages([
           ...conversationMessages,
           { role: "assistant", content: response.question },
@@ -48,6 +51,7 @@ export function useAi(options: UseAiOptions = {}) {
 
       setGeneratedLayout(response.layout);
       setPendingQuestion(null);
+      setPendingOptions([]);
       setStatus("complete");
       onNavigateToResult?.();
     },
@@ -57,6 +61,7 @@ export function useAi(options: UseAiOptions = {}) {
       setGeneratedLayout,
       setMessages,
       setPendingQuestion,
+      setPendingOptions,
       setStatus,
     ],
   );
@@ -117,6 +122,7 @@ export function useAi(options: UseAiOptions = {}) {
     onAnswerQuestion,
     state: status as AIStatus,
     pendingQuestion,
+    pendingOptions,
     error,
     reset,
     isLoading,

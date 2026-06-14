@@ -4,97 +4,172 @@ import { useState } from "react";
 
 import { useAi } from "@repo/hooks/ai";
 import { Box } from "@repo/ui/box";
-import { Button } from "@repo/ui/button";
-import { Input } from "@repo/ui/input";
+import { BrandMark } from "@repo/ui/brand-mark";
+import { PromptBar } from "@repo/ui/prompt-bar";
+import { QuestionSheet } from "@repo/ui/question-sheet";
 import { Text } from "@repo/ui/text";
+import { colors } from "@repo/ui/theme";
 
 export interface AiPromptScreenProps {
   onNavigateToResult?: () => void;
+  keyboardVisible?: boolean;
 }
 
-export function AiPromptScreen({ onNavigateToResult }: AiPromptScreenProps) {
-  const [input, setInput] = useState("");
+export function AiPromptScreen({
+  onNavigateToResult,
+  keyboardVisible = false,
+}: AiPromptScreenProps) {
+  const [promptInput, setPromptInput] = useState("");
+  const [freeTextInput, setFreeTextInput] = useState("");
   const {
     onPromptEnter,
     onAnswerQuestion,
-    state,
     pendingQuestion,
+    pendingOptions,
     error,
     isLoading,
   } = useAi({ onNavigateToResult });
 
-  const isAwaitingAnswer = state === "awaiting_answer";
-  const canSubmit = input.trim().length > 0 && !isLoading;
+  const showQuestionSheet = Boolean(pendingQuestion);
 
-  const handleSubmit = () => {
-    if (!canSubmit) {
+  const handlePromptSubmit = () => {
+    const trimmed = promptInput.trim();
+    if (!trimmed || isLoading) {
       return;
     }
 
-    if (isAwaitingAnswer) {
-      onAnswerQuestion(input);
-    } else {
-      onPromptEnter(input);
+    onPromptEnter(trimmed);
+    setPromptInput("");
+  };
+
+  const handleOptionSelect = (option: string) => {
+    if (isLoading) {
+      return;
     }
 
-    setInput("");
+    onAnswerQuestion(option);
+    setFreeTextInput("");
   };
+
+  const handleFreeTextSubmit = () => {
+    const trimmed = freeTextInput.trim();
+    if (!trimmed || isLoading) {
+      return;
+    }
+
+    onAnswerQuestion(trimmed);
+    setFreeTextInput("");
+  };
+
+  const bottomContent = (
+    <Box
+      className="flex w-full flex-col gap-3"
+      style={{ width: "100%", flexDirection: "column", gap: 12 }}
+    >
+      {showQuestionSheet && pendingQuestion ? (
+        <QuestionSheet
+          question={pendingQuestion}
+          options={pendingOptions}
+          freeTextValue={freeTextInput}
+          onFreeTextChange={setFreeTextInput}
+          onSelectOption={handleOptionSelect}
+          onFreeTextSubmit={handleFreeTextSubmit}
+          disabled={isLoading}
+          loading={isLoading}
+        />
+      ) : null}
+
+      {!showQuestionSheet ? (
+        <PromptBar
+          value={promptInput}
+          onChangeText={setPromptInput}
+          placeholder="What's on your mind?"
+          onSubmit={handlePromptSubmit}
+          loading={isLoading}
+          disabled={isLoading}
+        />
+      ) : null}
+
+      {error ? (
+        <Text
+          variant="caption"
+          className="px-1 text-center"
+          style={{ textAlign: "center", paddingHorizontal: 4 }}
+        >
+          {error}
+        </Text>
+      ) : null}
+    </Box>
+  );
 
   return (
     <Box
-      className="mx-auto flex w-full max-w-lg flex-col gap-4 p-4"
+      className="flex w-full flex-col"
       style={{
-        flexDirection: "column",
-        gap: 16,
-        padding: 16,
+        flex: 1,
         width: "100%",
-        maxWidth: 512,
-        alignSelf: "center",
+        flexDirection: "column",
+        backgroundColor: colors.bgBase,
       }}
     >
-      <Text variant="title">Plan your trip</Text>
-      <Text>
-        Describe what you want to see and we will build a layout from registered
-        widgets.
-      </Text>
-
-      {pendingQuestion ? (
-        <Box
-          className="rounded-xl border border-zinc-200 bg-zinc-50 p-4"
-          style={{
-            borderWidth: 1,
-            borderColor: "#e4e4e7",
-            borderRadius: 12,
-            padding: 16,
-            backgroundColor: "#fafafa",
-          }}
-        >
-          <Text variant="title">Question</Text>
-          <Text>{pendingQuestion}</Text>
-        </Box>
-      ) : null}
-
-      <Input
-        value={input}
-        onChangeText={setInput}
-        placeholder={
-          isAwaitingAnswer
-            ? "Type your answer..."
-            : "e.g. Show a hotel booking section with actions"
-        }
-        multiline
-        onSubmit={handleSubmit}
-      />
-
-      <Button onPress={handleSubmit}>
-        {isLoading
-          ? "Thinking..."
-          : isAwaitingAnswer
-            ? "Send answer"
-            : "Generate layout"}
-      </Button>
-
-      {error ? <Text>{error}</Text> : null}
+      <Box
+        className="mx-auto flex w-full max-w-[480px] flex-1 flex-col px-4 pt-4 md:min-h-dvh md:pt-8"
+        style={{
+          flex: 1,
+          width: "100%",
+          maxWidth: 480,
+          alignSelf: "center",
+          flexDirection: "column",
+          paddingHorizontal: 16,
+          paddingTop: 16,
+        }}
+      >
+        {keyboardVisible ? (
+          <>
+            <Box
+              className="flex flex-1 items-center justify-center"
+              style={{
+                flex: 1,
+                minHeight: 0,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <BrandMark />
+            </Box>
+            <Box
+              className="w-full"
+              style={{ width: "100%", flexShrink: 0 }}
+            >
+              {bottomContent}
+            </Box>
+          </>
+        ) : (
+          <>
+            <Box
+              className="flex flex-1 items-center justify-center"
+              style={{
+                flex: 1,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <BrandMark />
+            </Box>
+            <Box
+              className="flex flex-1 flex-col justify-end pb-4 md:pb-8"
+              style={{
+                flex: 1,
+                flexDirection: "column",
+                justifyContent: "flex-end",
+                paddingBottom: 16,
+              }}
+            >
+              {bottomContent}
+            </Box>
+          </>
+        )}
+      </Box>
     </Box>
   );
 }

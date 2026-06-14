@@ -5,6 +5,7 @@ export type { TextProps, TextVariant } from "./text.types";
 const variantStyles: Record<NonNullable<TextProps["variant"]>, string> = {
   body: "text-sm text-zinc-700",
   title: "text-lg font-semibold text-zinc-900",
+  caption: "text-xs text-red-600",
 };
 
 export function Text({

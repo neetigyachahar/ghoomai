@@ -4,7 +4,7 @@ export type {
   WidgetPropDefinition,
   WidgetSlotDefinition,
 } from "./widget-registry";
-export type { AIMessage, AIStatus, WidgetAIResponse } from "./ai";
+export type { AIMessage, AIQuestion, AIStatus, WidgetAIResponse } from "./ai";
 export type {
   AccommodationType,
   BudgetTier,

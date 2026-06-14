@@ -3,6 +3,10 @@
 
 import { Fragment, type ReactNode } from "react";
 
+import {
+  normalizeContentItem,
+  unwrapLayoutRoot,
+} from "./normalize-content-item";
 import { getWidgetRegistry } from "./registry";
 import type { ContentChildren, ContentItem } from "./types";
 
@@ -37,18 +41,27 @@ function renderSlotChildren(
 }
 
 export function renderContentItem(item: ContentItem): ReactNode {
-  const Widget = getWidgetRegistry()[item.key];
+  const normalized = normalizeContentItem(item);
+  const Widget = getWidgetRegistry()[normalized.key];
 
   if (!Widget) {
-    console.warn(`Unknown widget: ${item.key}`);
+    console.warn(
+      `Unknown widget: ${item.key} (resolved as ${normalized.key})`,
+    );
     return null;
   }
 
-  const slotProps = renderSlotChildren(item.children);
+  const slotProps = renderSlotChildren(normalized.children);
 
-  return <Widget {...item.props} {...slotProps} />;
+  return <Widget {...normalized.props} {...slotProps} />;
 }
 
 export function ContentRenderer({ content }: { content: ContentItem }) {
-  return renderContentItem(content);
+  const unwrapped = unwrapLayoutRoot(content);
+
+  if (Array.isArray(unwrapped)) {
+    return renderContentItems(unwrapped);
+  }
+
+  return renderContentItem(unwrapped);
 }

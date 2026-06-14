@@ -18,7 +18,11 @@ export function Text({
     <RNText
       style={[
         styles.base,
-        variant === "title" ? styles.title : styles.body,
+        variant === "title"
+          ? styles.title
+          : variant === "caption"
+            ? styles.caption
+            : styles.body,
         style as StyleProp<TextStyle>,
       ]}
     >
@@ -38,5 +42,9 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "600",
     color: "#18181b",
+  },
+  caption: {
+    fontSize: 12,
+    color: "#dc2626",
   },
 });

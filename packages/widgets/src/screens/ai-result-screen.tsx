@@ -3,6 +3,7 @@
 import { DemoBookingProvider } from "@repo/hooks/demo";
 import { useGeneratedLayout } from "@repo/hooks/ai";
 import { Box } from "@repo/ui/box";
+import { ScrollBox } from "@repo/ui/scroll-box";
 import { Text } from "@repo/ui/text";
 
 import { ContentRenderer } from "../renderer";
@@ -31,17 +32,23 @@ export function AiResultScreen() {
 
   return (
     <DemoBookingProvider>
-      <Box
-        className="mx-auto w-full max-w-lg p-4"
+      <ScrollBox
+        className="mx-auto w-full max-w-lg"
         style={{
+          flex: 1,
           width: "100%",
           maxWidth: 512,
-          padding: 16,
           alignSelf: "center",
+        }}
+        contentContainerStyle={{
+          flexDirection: "column",
+          gap: 16,
+          padding: 16,
+          paddingBottom: 32,
         }}
       >
         <ContentRenderer content={layout} />
-      </Box>
+      </ScrollBox>
     </DemoBookingProvider>
   );
 }

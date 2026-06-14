@@ -1,7 +1,7 @@
 import type { CSSProperties, ReactNode } from "react";
 import type { StyleProp, TextStyle } from "react-native";
 
-export type TextVariant = "body" | "title";
+export type TextVariant = "body" | "title" | "caption";
 
 export interface TextProps {
   children?: ReactNode;

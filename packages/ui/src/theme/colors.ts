@@ -1,0 +1,15 @@
+export const colors = {
+  bgBase: "#F8F7F4",
+  bgSurface: "#FFFFFF",
+  bgSubtle: "#F0EFEC",
+  bgAccentSoft: "#CCFBF1",
+  textPrimary: "#1C1917",
+  textSecondary: "#78716C",
+  textMuted: "#A8A29E",
+  borderDefault: "#E7E5E4",
+  borderFocus: "#0F766E",
+  brandGhoom: "#0F766E",
+  brandAi: "#EA580C",
+  accent: "#0F766E",
+  error: "#DC2626",
+} as const;
