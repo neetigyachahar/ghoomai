@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@repo/api": "*",
     "@repo/hooks": "*",
     "@repo/types": "*",
     "@repo/widgets": "*",

@@ -12,8 +12,9 @@ Strict workflow for Ghoomai frontend work. **Read [packages/widgets/ARCHITECTURE
 | Layer | Package | Allowed contents |
 |-------|---------|------------------|
 | Types | `@repo/types` | Type shapes only. **Zero dependencies.** |
+| Server APIs | `@repo/api` | AI orchestration, external APIs, tools, route handler logic. **No React, no UI.** |
 | Atoms | `@repo/ui` | `*.types.ts`, `*.web.tsx`, `*.mobile.tsx`. UI-only hooks stay here. |
-| Logic | `@repo/hooks` | `context/` (internal), `hooks/<feature>/` (public). **No UI.** |
+| Logic | `@repo/hooks` | `context/` (internal), `hooks/<feature>/` (public). **No UI, no Anthropic SDK.** |
 | UI | `@repo/widgets` | `widgets/`, `screens/`, `registry.ts`, `renderer.tsx` |
 | Apps | `apps/web`, `apps/mobile` | Routing shells only. Mount screens; pass navigation props. |
 
@@ -21,11 +22,14 @@ Strict workflow for Ghoomai frontend work. **Read [packages/widgets/ARCHITECTURE
 
 ```
 @repo/types          → (nothing)
+@repo/api             → @repo/types
 @repo/hooks          → @repo/types
 @repo/widgets        → @repo/types, @repo/hooks, @repo/ui
 @repo/hooks          ✗ @repo/widgets   (circular)
-apps                 → @repo/widgets    (not @repo/ui for UI composition)
+@repo/hooks          ✗ @repo/api        (server logic stays server-side)
+apps                 → @repo/widgets, @repo/api (web API routes only)
 widgets              ✗ @repo/hooks/context/*
+widgets              ✗ @repo/api
 ```
 
 ## Feature build order
@@ -35,11 +39,12 @@ Execute in this order. Do not skip layers or put logic in the wrong package.
 ```
 - [ ] 1. @repo/types — shared types (if needed)
 - [ ] 2. @repo/ui — atoms/molecules (web + mobile, matching visuals; desktop-friendly web)
-- [ ] 3. @repo/hooks — context (internal), server helpers (internal), public hooks + provider re-exports
-- [ ] 4. @repo/widgets/widgets/ — organism widget(s); compose @repo/ui + @repo/hooks/<feature>
-- [ ] 5. registry.ts — register widget keys + AI metadata (description, props, slots)
-- [ ] 6. @repo/widgets/screens/ — full-page screen(s) as **single cross-platform .tsx files**
-- [ ] 7. Apps — mount screens, pass routing props; web API routes for server logic only
+- [ ] 3. @repo/hooks — context (internal), public hooks + provider re-exports
+- [ ] 4. @repo/api — server handlers, prompts, tools, and orchestration (when server calls are needed)
+- [ ] 5. @repo/widgets/widgets/ — organism widget(s); compose @repo/ui + @repo/hooks/<feature>
+- [ ] 6. registry.ts — register widget keys + AI metadata (description, props, slots)
+- [ ] 7. @repo/widgets/screens/ — full-page screen(s) as **single cross-platform .tsx files**
+- [ ] 8. Apps — mount screens, pass routing props; web API routes call @repo/api
 ```
 
 ## Package patterns
@@ -52,6 +57,21 @@ packages/types/src/index.ts
 ```
 
 Types only. No imports from other packages.
+
+### `@repo/api`
+
+```
+packages/api/src/
+├── index.ts
+├── run-widget-ai.ts
+└── internal/
+    ├── build-prompt.ts
+    └── <tool-name>.ts          # tool handlers as needed
+```
+
+- Server-only. AI orchestration, external API clients, and tool definitions live here.
+- App API routes import `@repo/api`; client hooks/widgets never do.
+- Add export to `packages/api/package.json` if subpaths are needed later.
 
 ### `@repo/ui`
 
@@ -73,12 +93,11 @@ packages/hooks/src/
 ├── context/<feature>/<feature>-context.tsx   # internal
 └── hooks/<feature>/
     ├── use-<feature>.ts
-    ├── index.ts                             # public: Provider + hooks only
-    └── server.ts                            # optional; app API routes only
+    └── index.ts                             # public: Provider + hooks only
 ```
 
 - Public API: **Provider + hooks only**. Never export context, stores, or internal helpers from `index.ts`.
-- Server-only code (Anthropic SDK, etc.): export via `@repo/hooks/<feature>/server`.
+- Client hooks call app API routes via fetch — they do **not** import `@repo/api`.
 - Add `"./<feature>": "./src/hooks/<feature>/index.ts"` to `packages/hooks/package.json`.
 
 ### `@repo/widgets`
@@ -113,6 +132,9 @@ packages/widgets/src/screens/<name>-screen.tsx
 // page.tsx
 import { SomeScreen } from "@repo/widgets/screens/<name>";
 // pass useRouter navigation callbacks only
+
+// app/api/<feature>/route.ts — server AI only
+import { runWidgetAI } from "@repo/api";
 ```
 
 **Mobile** — same screen imports; routing differs, **never duplicate screen files**.
@@ -132,16 +154,19 @@ Mobile dev API: use `getAiApiEndpoint()` pattern (`10.0.2.2` for Android emulato
 | Compose `@repo/ui` or hooks for UI in apps | Mount `@repo/widgets/screens/*` |
 | Import `@repo/hooks/context/*` from widgets | Import `@repo/hooks/<feature>` hooks |
 | Put business logic in widgets package | Put in `@repo/hooks` |
+| Put Anthropic SDK, external API clients, or tool handlers in `@repo/hooks` | Put in `@repo/api` |
+| Import `@repo/api` from hooks, widgets, or mobile | Web API routes only |
 | Put types in hooks/widgets when shared | Put in `@repo/types` |
 | Create separate web/mobile screen files | One screen `.tsx` for both platforms |
 | Add `dark:` Tailwind variants on web | Light mode only; set `color-scheme: light` |
 | Expose API keys to client | Server route in `apps/web/app/api/*` + env |
-| Import registry in `@repo/hooks` | Pass registry from widgets/screens or apps |
+| Import registry in `@repo/hooks` or `@repo/api` | Pass registry from widgets/screens or apps |
 
 ## Verification before finishing
 
 - [ ] Types have zero package dependencies
 - [ ] New hook feature exports only Provider + hooks publicly
+- [ ] Server-side handler code lives in `@repo/api`, not `@repo/hooks`
 - [ ] Widget registered in `registry.ts` with AI metadata if AI-facing
 - [ ] Screen exported in `packages/widgets/package.json`
 - [ ] Apps contain routing only — no inline forms, inputs, or widget trees

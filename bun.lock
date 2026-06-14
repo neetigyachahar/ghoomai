@@ -49,6 +49,7 @@
       "name": "web",
       "version": "0.1.0",
       "dependencies": {
+        "@repo/ai": "*",
         "@repo/hooks": "*",
         "@repo/types": "*",
         "@repo/widgets": "*",
@@ -65,6 +66,20 @@
         "eslint-config-next": "16.2.9",
         "tailwindcss": "^4",
         "typescript": "^5",
+      },
+    },
+    "packages/ai": {
+      "name": "@repo/ai",
+      "version": "0.0.0",
+      "dependencies": {
+        "@anthropic-ai/sdk": "^0.71.2",
+        "@repo/types": "*",
+      },
+      "devDependencies": {
+        "@repo/eslint-config": "*",
+        "@repo/typescript-config": "*",
+        "eslint": "^9.39.1",
+        "typescript": "5.9.2",
       },
     },
     "packages/eslint-config": {
@@ -88,7 +103,6 @@
       "name": "@repo/hooks",
       "version": "0.0.0",
       "dependencies": {
-        "@anthropic-ai/sdk": "^0.71.2",
         "@repo/types": "*",
         "react": "^19.2.0",
       },
@@ -599,6 +613,8 @@
     "@react-native/normalize-colors": ["@react-native/normalize-colors@0.85.3", "", {}, "sha512-hj0PScZEhIbcOvQV5yMKX3ha4XEIOy/SVE1Rrpp0beW0dpNLOgSC7KDxGewmDnIHK9YdQUXGY9eMEfShUMIaZw=="],
 
     "@react-native/virtualized-lists": ["@react-native/virtualized-lists@0.85.3", "", { "dependencies": { "invariant": "^2.2.4", "nullthrows": "^1.1.1" }, "peerDependencies": { "@types/react": "^19.2.0", "react": "*", "react-native": "0.85.3" }, "optionalPeers": ["@types/react"] }, "sha512-dsCjI//OIPEUJMyNHp4l7zNLVjCx7bcaRUceOCkU+IB17hkbtbGWvi7HjGFSzy7FJGmS/MOlcfpb72xXiy1Oig=="],
+
+    "@repo/ai": ["@repo/ai@workspace:packages/ai"],
 
     "@repo/eslint-config": ["@repo/eslint-config@workspace:packages/eslint-config"],
 

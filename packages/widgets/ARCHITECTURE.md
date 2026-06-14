@@ -4,11 +4,12 @@ This document describes how shared UI, business widgets, and hooks are structure
 
 ## Overview
 
-The frontend is split into four packages following [atomic design](https://bradfrost.com/blog/post/atomic-web-design/) and separation-of-concerns principles:
+The frontend is split into five packages following [atomic design](https://bradfrost.com/blog/post/atomic-web-design/) and separation-of-concerns principles:
 
 | Layer | Package | Atomic level | Responsibility |
 |-------|---------|--------------|----------------|
 | Shared types | `@repo/types` | — | Cross-package type shapes only (zero dependencies) |
+| Server APIs | `@repo/api` | — | Server-side orchestration: AI, external APIs, tools, and route handlers |
 | Atoms & molecules | `@repo/ui` | Atoms, molecules | Platform-agnostic API with platform-specific implementations |
 | Organisms & pages | `@repo/widgets` | Organisms, pages | Business UI, widget registry, screens, and tree rendering |
 | Business logic & state | `@repo/hooks` | — | Context, state, and feature hooks (logic only, no UI) |
@@ -26,6 +27,11 @@ flowchart TB
     Providers[Feature providers]
     FeatureHooks[Feature hooks]
     Context["context/ (internal)"]
+  end
+
+  subgraph apiPkg ["@repo/api"]
+    RunAI[runWidgetAI]
+    ServerAPIs[Prompts, tools, and APIs]
   end
 
   subgraph widgetsPkg ["@repo/widgets"]
@@ -47,6 +53,9 @@ flowchart TB
 
   Web --> Screens
   Mobile --> Screens
+  Web --> RunAI
+  RunAI --> ServerAPIs
+  RunAI --> Types
   Screens --> FeatureHooks
   Screens --> Widgets
   Providers --> Renderer
@@ -76,6 +85,23 @@ packages/types/src/
 ├── ai.ts
 └── index.ts
 ```
+
+### `@repo/api` — server-side APIs and orchestration
+
+- **Server-only** — AI orchestration, external API clients, tool definitions, and shared route handler logic
+- Used exclusively by app API routes (`apps/web/app/api/*`); never imported by client hooks, widgets, or mobile
+- Depends on `@repo/types` only among workspace packages
+- No React, no UI, no client state
+
+```
+packages/api/src/
+├── index.ts
+├── run-widget-ai.ts
+└── internal/
+    └── build-prompt.ts
+```
+
+Future modules (AI tools, third-party APIs, data lookups) are added here as the server surface grows.
 
 ### `@repo/ui` — atoms & molecules
 
@@ -395,7 +421,7 @@ export default function Page() {
 ```
 
 - Dependencies: `@repo/widgets` (not `@repo/ui` in app code)
-- Server AI routes live in `apps/web/app/api/*` and import `@repo/hooks/ai/server`
+- Server API routes live in `apps/web/app/api/*` and import `@repo/api`
 - `ANTHROPIC_API_KEY` is server-only env
 
 ### Mobile (`apps/mobile`)
@@ -453,8 +479,9 @@ flowchart LR
 3. **`@repo/widgets/widgets/`** — build business organism widget(s) using `@repo/ui` + `@repo/hooks/<feature>`
 4. **`registry.ts`** — register widget key(s); use widgets in screens or as AI-generated content
 5. **`@repo/widgets/screens/`** — add static full-page screen(s) as single cross-platform files
-6. **`@repo/hooks`** — implement context (internal), API/server helpers (internal), and public hooks only
-7. **Integrate** — wire hooks inside widgets/screens; apps mount screens + pass routing props; web app adds API routes if server logic is needed
+6. **`@repo/hooks`** — implement context (internal) and public hooks only
+7. **`@repo/api`** — add server handlers, prompts, tools, and orchestration (when server calls are needed)
+8. **Integrate** — wire hooks inside widgets/screens; apps mount screens + pass routing props; web app adds API routes that call `@repo/api`
 
 ---
 
@@ -466,6 +493,12 @@ flowchart LR
 |-------------|----------|
 | `@repo/types` | `ContentItem`, `WidgetAIMetadata`, `WidgetAIResponse`, etc. |
 
+### `@repo/api`
+
+| Export path | Contents |
+|-------------|----------|
+| `@repo/api` | `runWidgetAI`, `RunWidgetAIInput` (app API routes only) |
+
 ### `@repo/hooks`
 
 | Export path | Contents |
@@ -473,7 +506,6 @@ flowchart LR
 | `@repo/hooks` | All public providers and hooks (re-exported) |
 | `@repo/hooks/demo` | `DemoBookingProvider`, `useDemoBooking` |
 | `@repo/hooks/ai` | `AIProvider`, `useAi`, `useGeneratedLayout` |
-| `@repo/hooks/ai/server` | `runWidgetAI` (app API routes only) |
 
 ### `@repo/widgets`
 
@@ -499,5 +531,6 @@ flowchart LR
 8. **Widgets compose atoms** — they do not use `react-native` or DOM primitives directly
 9. **Slots are pre-rendered** — the renderer passes `ReactNode` children; widgets just place them
 10. **Content is data** — AI or config drives `ContentItem` trees rendered by `ContentRenderer`
-11. **Server AI** — Anthropic SDK runs in app API routes via `@repo/hooks/ai/server`; API key stays server-only
-12. **UI-only hooks stay in `@repo/ui`** — business hooks stay in `@repo/hooks`
+11. **Server APIs** — orchestration lives in `@repo/api`; app API routes import it; secrets stay server-only
+12. **Client AI hooks** — `@repo/hooks/ai` handles client state and HTTP calls to app API routes only
+13. **UI-only hooks stay in `@repo/ui`** — business hooks stay in `@repo/hooks`

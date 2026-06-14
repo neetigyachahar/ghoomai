@@ -1,6 +1,6 @@
 import type { AIMessage, WidgetAIMetadata, WidgetAIResponse } from "@repo/types";
 
-import { runWidgetAI } from "@repo/hooks/ai/server";
+import { runWidgetAI } from "@repo/api";
 
 export async function POST(req: Request) {
   try {
