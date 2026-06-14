@@ -50,3 +50,11 @@ export function getAiApiEndpoint(): string {
 
   return `http://localhost:${WEB_PORT}${API_PATH}`;
 }
+
+/**
+ * Web API origin for travel resource fetches on mobile (no path suffix).
+ */
+export function getWebApiBase(): string {
+  const endpoint = getAiApiEndpoint();
+  return endpoint.replace(/\/api\/ai\/layout$/, '');
+}
