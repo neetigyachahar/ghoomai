@@ -7,8 +7,11 @@ import type {
 } from "@repo/types";
 
 import { buildSystemPrompt } from "./internal/build-prompt";
+import { parseWidgetAIResponse } from "./internal/parse-ai-response";
+import { travelTools } from "./tools/travel-tools";
 
 const ANTHROPIC_MODEL = "claude-sonnet-4-6";
+const MAX_TOOL_ITERATIONS = 12;
 
 export interface RunWidgetAIInput {
   apiKey: string;
@@ -16,27 +19,19 @@ export interface RunWidgetAIInput {
   widgetRegistry: Record<string, WidgetAIMetadata>;
 }
 
-function parseWidgetAIResponse(text: string): WidgetAIResponse {
-  const trimmed = text.trim();
-  const jsonText = trimmed.startsWith("```")
-    ? trimmed.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "")
-    : trimmed;
+function extractResponseText(
+  content: Array<{ type: string; text?: string }>,
+): string {
+  const textBlocks = content.filter(
+    (block): block is { type: "text"; text: string } =>
+      block.type === "text" && typeof block.text === "string",
+  );
 
-  const parsed = JSON.parse(jsonText) as WidgetAIResponse;
-
-  if (parsed.type === "question" && !parsed.question) {
-    throw new Error("AI response missing question");
+  if (textBlocks.length === 0) {
+    throw new Error("Unexpected response format from Anthropic");
   }
 
-  if (parsed.type === "layout" && !parsed.layout) {
-    throw new Error("AI response missing layout");
-  }
-
-  if (parsed.type !== "question" && parsed.type !== "layout") {
-    throw new Error("AI response has invalid type");
-  }
-
-  return parsed;
+  return textBlocks.map((block) => block.text).join("\n").trim();
 }
 
 export async function runWidgetAI(
@@ -44,21 +39,20 @@ export async function runWidgetAI(
 ): Promise<WidgetAIResponse> {
   const client = new Anthropic({ apiKey: input.apiKey });
 
-  const response = await client.messages.create({
+  const runner = client.beta.messages.toolRunner({
     model: ANTHROPIC_MODEL,
     max_tokens: 4096,
+    max_iterations: MAX_TOOL_ITERATIONS,
     system: buildSystemPrompt(input.widgetRegistry),
     messages: input.messages.map((message) => ({
       role: message.role,
       content: message.content,
     })),
+    tools: travelTools,
   });
 
-  const block = response.content.find((item) => item.type === "text");
+  const finalMessage = await runner.runUntilDone();
+  const text = extractResponseText(finalMessage.content);
 
-  if (!block || block.type !== "text") {
-    throw new Error("Unexpected response format from Anthropic");
-  }
-
-  return parseWidgetAIResponse(block.text);
+  return parseWidgetAIResponse(text);
 }

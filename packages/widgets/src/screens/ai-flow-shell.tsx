@@ -2,22 +2,31 @@
 
 import { type ReactNode } from "react";
 
+import { TravelDataProvider } from "@repo/hooks/travel";
+
 import { getWidgetRegistryForAI } from "../registry";
 import { AiProviderShell } from "./ai-provider-shell";
 
 export interface AiFlowShellProps {
   apiEndpoint?: string;
+  apiBase?: string;
   children: ReactNode;
 }
 
-export function AiFlowShell({ apiEndpoint, children }: AiFlowShellProps) {
+export function AiFlowShell({
+  apiEndpoint,
+  apiBase,
+  children,
+}: AiFlowShellProps) {
   return (
-    <AiProviderShell
-      widgetRegistry={getWidgetRegistryForAI()}
-      apiEndpoint={apiEndpoint}
-    >
-      {children}
-    </AiProviderShell>
+    <TravelDataProvider apiBase={apiBase}>
+      <AiProviderShell
+        widgetRegistry={getWidgetRegistryForAI()}
+        apiEndpoint={apiEndpoint}
+      >
+        {children}
+      </AiProviderShell>
+    </TravelDataProvider>
   );
 }
 

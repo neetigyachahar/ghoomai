@@ -5,6 +5,7 @@ import type {
 } from "./types";
 import { DemoActionWidget } from "./widgets/demo-action";
 import { DemoSectionWidget } from "./widgets/demo-section";
+import { TravelOfferWidget } from "./widgets/travel-offer";
 
 const widgetDefinitions = {
   "demo-section": {
@@ -44,6 +45,25 @@ const widgetDefinitions = {
           "Controls button behaviour. Use 'book' for booking actions that update booking count.",
         enum: ["book", "info"],
         default: "info",
+      },
+    },
+  },
+  "travel-offer": {
+    component: TravelOfferWidget as unknown as WidgetComponent,
+    description:
+      "Displays a travel option fetched by id. Use after looking up flights, buses, trains, cabs, or hotels via tools.",
+    props: {
+      resourceType: {
+        type: "string",
+        required: true,
+        description: "Travel resource type.",
+        enum: ["flight", "bus", "train", "cab", "hotel"],
+      },
+      resourceId: {
+        type: "string",
+        required: true,
+        description:
+          "Exact id from tool search results. Client loads full details by this id.",
       },
     },
   },
