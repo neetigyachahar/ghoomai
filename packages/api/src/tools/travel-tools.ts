@@ -32,7 +32,7 @@ export const searchFlightsTool = betaZodTool({
 export const searchBusesTool = betaZodTool({
   name: "search_buses",
   description:
-    "Search bus options between two cities. Use overnight=true for Delhi to Manali overnight sleeper buses. Results include id, operator, times, and price.",
+    "Search bus options between two cities. Use overnight=true for Delhi↔Manali overnight sleeper buses. Results include id, operator, times, and price.",
   inputSchema: z.object({
     from: z.string().describe("Origin city, e.g. Delhi or Chandigarh"),
     to: z.string().describe("Destination city, e.g. Manali"),
@@ -66,7 +66,7 @@ export const searchTrainsTool = betaZodTool({
 export const searchCabsTool = betaZodTool({
   name: "search_cabs",
   description:
-    "Search outstation cab options between two locations. Use for last-mile legs such as Chandigarh to Manali or airport transfers.",
+    "Search outstation cab options between two locations. Use for airport transfers and inter-city legs. For local sightseeing within a destination (temple, valley, etc.), do NOT invent ids — use resourceId \"local-cab\" with cabDetails in the layout instead.",
   inputSchema: z.object({
     from: z.string().describe("Pickup location or city"),
     to: z.string().describe("Drop location or city"),

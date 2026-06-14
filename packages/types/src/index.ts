@@ -1,3 +1,4 @@
+export { toContentItemArray } from "./content";
 export type { ContentChildren, ContentItem } from "./content";
 export type {
   WidgetAIMetadata,
@@ -10,6 +11,7 @@ export type {
   BudgetTier,
   Bus,
   Cab,
+  CabDetails,
   Flight,
   Hotel,
   HotelSearchParams,

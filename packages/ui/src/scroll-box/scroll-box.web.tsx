@@ -11,13 +11,15 @@ export function ScrollBox({
 }: ScrollBoxProps) {
   return (
     <div
-      className={["min-h-0 flex-1 overflow-y-auto", className]
+      className={["min-h-0 w-full flex-1 overflow-y-auto", className]
         .filter(Boolean)
         .join(" ")}
       style={style as React.CSSProperties}
     >
       <div
-        className={contentContainerClassName}
+        className={["w-full min-w-0", contentContainerClassName]
+          .filter(Boolean)
+          .join(" ")}
         style={contentContainerStyle as React.CSSProperties}
       >
         {children}

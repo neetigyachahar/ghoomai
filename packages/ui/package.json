@@ -54,6 +54,96 @@
       "react-native": "./src/send-arrow-icon/send-arrow-icon.mobile.tsx",
       "types": "./src/send-arrow-icon/send-arrow-icon.web.tsx",
       "default": "./src/send-arrow-icon/send-arrow-icon.web.tsx"
+    },
+    "./content-block": {
+      "react-native": "./src/content-block/content-block.mobile.tsx",
+      "types": "./src/content-block/content-block.web.tsx",
+      "default": "./src/content-block/content-block.web.tsx"
+    },
+    "./content-block-group": {
+      "react-native": "./src/content-block-group/content-block-group.mobile.tsx",
+      "types": "./src/content-block-group/content-block-group.web.tsx",
+      "default": "./src/content-block-group/content-block-group.web.tsx"
+    },
+    "./section-header": {
+      "react-native": "./src/section-header/section-header.mobile.tsx",
+      "types": "./src/section-header/section-header.web.tsx",
+      "default": "./src/section-header/section-header.web.tsx"
+    },
+    "./or-divider": {
+      "react-native": "./src/or-divider/or-divider.mobile.tsx",
+      "types": "./src/or-divider/or-divider.web.tsx",
+      "default": "./src/or-divider/or-divider.web.tsx"
+    },
+    "./plan-option": {
+      "react-native": "./src/plan-option/plan-option.mobile.tsx",
+      "types": "./src/plan-option/plan-option.web.tsx",
+      "default": "./src/plan-option/plan-option.web.tsx"
+    },
+    "./travel-flight-offer": {
+      "react-native": "./src/travel-flight-offer/travel-flight-offer.mobile.tsx",
+      "types": "./src/travel-flight-offer/travel-flight-offer.web.tsx",
+      "default": "./src/travel-flight-offer/travel-flight-offer.web.tsx"
+    },
+    "./travel-bus-offer": {
+      "react-native": "./src/travel-bus-offer/travel-bus-offer.mobile.tsx",
+      "types": "./src/travel-bus-offer/travel-bus-offer.web.tsx",
+      "default": "./src/travel-bus-offer/travel-bus-offer.web.tsx"
+    },
+    "./travel-train-offer": {
+      "react-native": "./src/travel-train-offer/travel-train-offer.mobile.tsx",
+      "types": "./src/travel-train-offer/travel-train-offer.web.tsx",
+      "default": "./src/travel-train-offer/travel-train-offer.web.tsx"
+    },
+    "./travel-cab-offer": {
+      "react-native": "./src/travel-cab-offer/travel-cab-offer.mobile.tsx",
+      "types": "./src/travel-cab-offer/travel-cab-offer.web.tsx",
+      "default": "./src/travel-cab-offer/travel-cab-offer.web.tsx"
+    },
+    "./travel-hotel-offer": {
+      "react-native": "./src/travel-hotel-offer/travel-hotel-offer.mobile.tsx",
+      "types": "./src/travel-hotel-offer/travel-hotel-offer.web.tsx",
+      "default": "./src/travel-hotel-offer/travel-hotel-offer.web.tsx"
+    },
+    "./travel-type-icon": {
+      "react-native": "./src/travel-type-icon/travel-type-icon.mobile.tsx",
+      "types": "./src/travel-type-icon/travel-type-icon.web.tsx",
+      "default": "./src/travel-type-icon/travel-type-icon.web.tsx"
+    },
+    "./travel-offer-card": {
+      "react-native": "./src/travel-offer-card/travel-offer-card.mobile.tsx",
+      "types": "./src/travel-offer-card/travel-offer-card.web.tsx",
+      "default": "./src/travel-offer-card/travel-offer-card.web.tsx"
+    },
+    "./travel-offer-layout": {
+      "react-native": "./src/travel-offer-layout/travel-offer-layout.mobile.tsx",
+      "types": "./src/travel-offer-layout/travel-offer-layout.web.tsx",
+      "default": "./src/travel-offer-layout/travel-offer-layout.web.tsx"
+    },
+    "./offer-panel": {
+      "react-native": "./src/offer-panel/offer-panel.mobile.tsx",
+      "types": "./src/offer-panel/offer-panel.web.tsx",
+      "default": "./src/offer-panel/offer-panel.web.tsx"
+    },
+    "./widget-divider": {
+      "react-native": "./src/widget-divider/widget-divider.mobile.tsx",
+      "types": "./src/widget-divider/widget-divider.web.tsx",
+      "default": "./src/widget-divider/widget-divider.web.tsx"
+    },
+    "./trip-header": {
+      "react-native": "./src/trip-header/trip-header.mobile.tsx",
+      "types": "./src/trip-header/trip-header.web.tsx",
+      "default": "./src/trip-header/trip-header.web.tsx"
+    },
+    "./timeline-step": {
+      "react-native": "./src/timeline-step/timeline-step.mobile.tsx",
+      "types": "./src/timeline-step/timeline-step.web.tsx",
+      "default": "./src/timeline-step/timeline-step.web.tsx"
+    },
+    "./widget-error": {
+      "react-native": "./src/widget-error/widget-error.mobile.tsx",
+      "types": "./src/widget-error/widget-error.web.tsx",
+      "default": "./src/widget-error/widget-error.web.tsx"
     }
   },
   "scripts": {
@@ -73,6 +163,9 @@
     "typescript": "5.9.2"
   },
   "dependencies": {
+    "@repo/types": "*",
+    "lucide-react": "^1.18.0",
+    "lucide-react-native": "^1.18.0",
     "react": "^19.2.0"
   },
   "peerDependencies": {

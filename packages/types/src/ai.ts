@@ -20,4 +20,4 @@ export type AIQuestion = {
 
 export type WidgetAIResponse =
   | AIQuestion
-  | { type: "layout"; layout: ContentItem };
+  | { type: "layout"; layout: ContentItem | ContentItem[] };

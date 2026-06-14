@@ -12,6 +12,7 @@ import type {
 import { buildSystemPrompt } from "./internal/build-prompt";
 import { parseWidgetAIResponse } from "./internal/parse-ai-response";
 import { questionResponseSchema } from "./internal/question-response-schema";
+import { sanitizeLayoutResponse } from "./internal/validate-layout-response";
 import { travelTools } from "./tools/travel-tools";
 
 // Demo / production — swap back for real demos
@@ -52,11 +53,20 @@ function conversationUsedTools(messages: BetaMessageParam[]): boolean {
   );
 }
 
+function messagesForStructuredParse(
+  conversationMessages: BetaMessageParam[],
+): BetaMessageParam[] {
+  return conversationMessages.at(-1)?.role === "assistant"
+    ? conversationMessages.slice(0, -1)
+    : conversationMessages;
+}
+
 export async function runWidgetAI(
   input: RunWidgetAIInput,
 ): Promise<WidgetAIResponse> {
   const client = new Anthropic({ apiKey: input.apiKey });
   const system = buildSystemPrompt(input.widgetRegistry);
+  const widgetKeys = Object.keys(input.widgetRegistry);
 
   const runner = client.beta.messages.toolRunner({
     model: ANTHROPIC_MODEL,
@@ -74,19 +84,24 @@ export async function runWidgetAI(
   const conversationMessages = runner.params.messages;
 
   if (conversationUsedTools(conversationMessages)) {
-    return parseWidgetAIResponse(extractResponseText(finalMessage.content));
-  }
+    const loose = parseWidgetAIResponse(
+      extractResponseText(finalMessage.content),
+    );
 
-  const messagesForParse =
-    conversationMessages.at(-1)?.role === "assistant"
-      ? conversationMessages.slice(0, -1)
-      : conversationMessages;
+    if (loose.type === "question") {
+      return loose;
+    }
+
+    return sanitizeLayoutResponse(loose, widgetKeys);
+  }
 
   const parsed = await client.messages.parse({
     model: ANTHROPIC_MODEL,
     max_tokens: 4096,
     system,
-    messages: messagesForParse as MessageParam[],
+    messages: messagesForStructuredParse(
+      conversationMessages,
+    ) as MessageParam[],
     output_config: {
       format: QUESTION_OUTPUT_FORMAT,
     },
@@ -96,5 +111,5 @@ export async function runWidgetAI(
     throw new Error("AI response did not match expected schema");
   }
 
-  return parsed.parsed_output;
+  return parsed.parsed_output as WidgetAIResponse;
 }

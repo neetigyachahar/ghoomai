@@ -82,6 +82,8 @@ export function useAi(options: UseAiOptions = {}) {
       try {
         await handleResponse(nextMessages);
       } catch (err) {
+        setPendingQuestion(null);
+        setPendingOptions([]);
         setError(err instanceof Error ? err.message : "Something went wrong");
         setStatus("error");
       }
@@ -108,6 +110,8 @@ export function useAi(options: UseAiOptions = {}) {
       try {
         await handleResponse(nextMessages);
       } catch (err) {
+        setPendingQuestion(null);
+        setPendingOptions([]);
         setError(err instanceof Error ? err.message : "Something went wrong");
         setStatus("error");
       }

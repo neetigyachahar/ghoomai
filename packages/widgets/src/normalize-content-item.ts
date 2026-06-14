@@ -1,39 +1,24 @@
+import { toContentItemArray } from "@repo/types";
+
 import type { ContentChildren, ContentItem } from "./types";
 
-const REGISTRY_WIDGET_KEYS = new Set([
-  "demo-section",
-  "demo-action",
-  "travel-offer",
-]);
+import { getWidgetRegistry } from "./registry";
 
-export function inferWidgetKey(item: ContentItem): string {
-  if (REGISTRY_WIDGET_KEYS.has(item.key)) {
-    return item.key;
-  }
+function getRegistryWidgetKeys(): Set<string> {
+  return new Set(Object.keys(getWidgetRegistry()));
+}
 
-  const { props } = item;
-
-  if (
-    typeof props.resourceType === "string" &&
-    typeof props.resourceId === "string"
-  ) {
-    return "travel-offer";
-  }
-
-  if (typeof props.title === "string") {
-    return "demo-section";
-  }
-
-  if (typeof props.label === "string") {
-    return "demo-action";
-  }
-
-  return item.key;
+function isContentItem(value: unknown): value is ContentItem {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "key" in value &&
+    typeof (value as ContentItem).key === "string"
+  );
 }
 
 function normalizeContentChildren(
   children: ContentChildren | null,
-  widgetKey: string,
 ): ContentChildren | null {
   if (!children) {
     return null;
@@ -47,46 +32,34 @@ function normalizeContentChildren(
       continue;
     }
 
-    const targetSlot =
-      slotName === "content" && widgetKey === "demo-section"
-        ? "children"
-        : slotName;
-
-    normalized[targetSlot] = items.map(normalizeContentItem);
+    normalized[slotName] = toContentItemArray(items)
+      .filter(isContentItem)
+      .map(normalizeContentItem);
   }
 
   return normalized;
 }
 
 export function normalizeContentItem(item: ContentItem): ContentItem {
-  const widgetKey = inferWidgetKey(item);
+  const registryKeys = getRegistryWidgetKeys();
+
+  if (!registryKeys.has(item.key)) {
+    console.warn(`Unknown widget key: ${item.key}`);
+  }
 
   return {
-    key: widgetKey,
-    props: item.props,
-    children: normalizeContentChildren(item.children, widgetKey),
+    key: item.key,
+    props: item.props ?? {},
+    children: normalizeContentChildren(item.children),
   };
 }
 
 export function unwrapLayoutRoot(
-  item: ContentItem,
+  layout: ContentItem | ContentItem[],
 ): ContentItem | ContentItem[] {
-  const widgetKey = inferWidgetKey(item);
-
-  if (REGISTRY_WIDGET_KEYS.has(widgetKey)) {
-    return normalizeContentItem(item);
+  if (Array.isArray(layout)) {
+    return layout.filter(isContentItem).map(normalizeContentItem);
   }
 
-  if (item.children) {
-    const slotItems =
-      item.children.content ??
-      item.children.children ??
-      Object.values(item.children).find(Array.isArray);
-
-    if (Array.isArray(slotItems) && slotItems.length > 0) {
-      return slotItems.map(normalizeContentItem);
-    }
-  }
-
-  return normalizeContentItem(item);
+  return normalizeContentItem(layout);
 }

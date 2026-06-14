@@ -56,6 +56,18 @@ export interface Cab {
   priceInr: number;
 }
 
+/** Inline cab details when no catalog id exists (local sightseeing rides). */
+export interface CabDetails {
+  provider?: string;
+  from: string;
+  to: string;
+  vehicleType?: string;
+  dayLabel?: string;
+  departureTime?: string;
+  durationMinutes?: number;
+  priceInr?: number;
+}
+
 export interface Hotel {
   id: string;
   name: string;
