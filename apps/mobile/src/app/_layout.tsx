@@ -1,15 +1,21 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from 'expo-router';
+import { Stack } from 'expo-router';
 import { useColorScheme } from 'react-native';
 
-import { AnimatedSplashOverlay } from '@/components/animated-icon';
-import AppTabs from '@/components/app-tabs';
+import { AiFlowShell } from '@repo/widgets/screens/ai-flow';
 
-export default function TabLayout() {
+import { getAiApiEndpoint } from '@/constants/api';
+
+const API_ENDPOINT = getAiApiEndpoint();
+
+export default function RootLayout() {
   const colorScheme = useColorScheme();
+
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <AnimatedSplashOverlay />
-      <AppTabs />
+      <AiFlowShell apiEndpoint={API_ENDPOINT}>
+        <Stack screenOptions={{ headerShown: false }} />
+      </AiFlowShell>
     </ThemeProvider>
   );
 }

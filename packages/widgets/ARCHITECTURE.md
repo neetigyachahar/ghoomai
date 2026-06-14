@@ -4,15 +4,16 @@ This document describes how shared UI, business widgets, and hooks are structure
 
 ## Overview
 
-The frontend is split into three packages following [atomic design](https://bradfrost.com/blog/post/atomic-web-design/) and separation-of-concerns principles:
+The frontend is split into four packages following [atomic design](https://bradfrost.com/blog/post/atomic-web-design/) and separation-of-concerns principles:
 
 | Layer | Package | Atomic level | Responsibility |
 |-------|---------|--------------|----------------|
+| Shared types | `@repo/types` | — | Cross-package type shapes only (zero dependencies) |
 | Atoms & molecules | `@repo/ui` | Atoms, molecules | Platform-agnostic API with platform-specific implementations |
-| Organisms & pages | `@repo/widgets` | Organisms, pages | Business UI composition, widget registry, and tree rendering |
+| Organisms & pages | `@repo/widgets` | Organisms, pages | Business UI, widget registry, screens, and tree rendering |
 | Business logic & state | `@repo/hooks` | — | Context, state, and feature hooks (logic only, no UI) |
 
-Apps (`web`, `mobile`) compose **providers** from `@repo/hooks` and render trees via `@repo/widgets`. They do not import `@repo/ui` directly.
+Apps (`web`, `mobile`) mount **screens** from `@repo/widgets/screens/*` and pass routing props only. They do not import `@repo/ui` directly or compose feature UI inline.
 
 ```mermaid
 flowchart TB
@@ -31,6 +32,11 @@ flowchart TB
     Renderer[ContentRenderer]
     Registry[widgetRegistry]
     Widgets[Widget components]
+    Screens[Screens]
+  end
+
+  subgraph typesPkg ["@repo/types"]
+    Types[ContentItem, WidgetAIMetadata, ...]
   end
 
   subgraph uiPkg ["@repo/ui"]
@@ -39,8 +45,10 @@ flowchart TB
     MobileImpl["*.mobile.tsx"]
   end
 
-  Web --> Providers
-  Mobile --> Providers
+  Web --> Screens
+  Mobile --> Screens
+  Screens --> FeatureHooks
+  Screens --> Widgets
   Providers --> Renderer
   Renderer --> Registry
   Registry --> Widgets
@@ -54,6 +62,20 @@ flowchart TB
 ---
 
 ## Package responsibilities
+
+### `@repo/types` — shared type shapes
+
+- **Types only** — no runtime code, no package dependencies
+- Used by `@repo/hooks`, `@repo/widgets`, and app API routes
+- Examples: `ContentItem`, `WidgetAIMetadata`, `WidgetAIResponse`
+
+```
+packages/types/src/
+├── content.ts
+├── widget-registry.ts
+├── ai.ts
+└── index.ts
+```
 
 ### `@repo/ui` — atoms & molecules
 
@@ -189,14 +211,22 @@ flowchart TB
 
 ```
 packages/widgets/src/
-├── types.ts
+├── types.ts              # re-exports from @repo/types + widget-only types
 ├── registry.ts
 ├── renderer.tsx
 ├── index.ts
-└── widgets/
-    ├── demo-section.tsx
-    └── demo-action.tsx      # uses useDemoBooking hook
+├── widgets/
+│   ├── demo-section.tsx
+│   └── demo-action.tsx
+└── screens/              # static full-page layouts (single file, all platforms)
+    ├── ai-prompt-screen.tsx
+    ├── ai-result-screen.tsx
+    └── ai-flow-shell.tsx
 ```
+
+**Screens** are sibling to `widgets/`. Each screen is a **single cross-platform `.tsx` file** used by both web and mobile apps. Screens compose `@repo/ui` atoms and call `@repo/hooks/<feature>` hooks. Apps mount screens — they never build forms, inputs, or widget trees inline.
+
+Screens may wrap feature providers (e.g. `AiFlowShell` reads the widget registry and mounts `AIProvider`) so apps stay thin routing shells.
 
 ---
 
@@ -339,40 +369,57 @@ export function DemoActionWidget({ label, action = "info" }) {
 
 ## App integration
 
+Apps are **routing shells**. They mount screens from `@repo/widgets/screens/*`, pass navigation callbacks, and (for web) host server API routes. They never compose `@repo/ui` atoms or call feature hooks for UI directly.
+
 ### Web (`apps/web`)
 
 ```tsx
-// apps/web/app/demo-widget.tsx
-import { DemoBookingProvider } from "@repo/hooks/demo";
-import { ContentRenderer, type ContentItem } from "@repo/widgets";
+// apps/web/app/ai/layout.tsx — shared provider for prompt + result routes
+import { AiFlowShell } from "@repo/widgets/screens/ai-flow";
 
-export function DemoWidget() {
+export default function AiLayout({ children }) {
+  return <AiFlowShell>{children}</AiFlowShell>;
+}
+
+// apps/web/app/ai/page.tsx
+"use client";
+import { AiPromptScreen } from "@repo/widgets/screens/ai-flow";
+import { useRouter } from "next/navigation";
+
+export default function Page() {
+  const router = useRouter();
   return (
-    <DemoBookingProvider>
-      <ContentRenderer content={content} />
-    </DemoBookingProvider>
+    <AiPromptScreen onNavigateToResult={() => router.push("/ai/result")} />
   );
 }
 ```
 
-- Dependencies: `@repo/hooks`, `@repo/widgets` (not `@repo/ui` in app code)
-- `next.config.ts`: `transpilePackages: ["@repo/ui", "@repo/widgets", "@repo/hooks"]`
-- `globals.css` still imports `@repo/ui/styles.css` for Tailwind class scanning
+- Dependencies: `@repo/widgets` (not `@repo/ui` in app code)
+- Server AI routes live in `apps/web/app/api/*` and import `@repo/hooks/ai/server`
+- `ANTHROPIC_API_KEY` is server-only env
 
 ### Mobile (`apps/mobile`)
 
-```tsx
-import { DemoBookingProvider } from "@repo/hooks/demo";
-import { ContentRenderer, type ContentItem } from "@repo/widgets";
+Same screens, different router:
 
-<DemoBookingProvider>
-  <ContentRenderer content={widgetContent} />
-</DemoBookingProvider>
+```tsx
+import { AiPromptScreen } from "@repo/widgets/screens/ai-flow";
+import { useRouter } from "expo-router";
+
+export default function AiPromptRoute() {
+  const router = useRouter();
+  return (
+    <AiPromptScreen onNavigateToResult={() => router.push("/ai/result")} />
+  );
+}
 ```
 
-- Dependencies: `@repo/hooks`, `@repo/widgets`
-- Metro `watchFolders` covers the monorepo root
-- tsconfig `customConditions: ["react-native"]` resolves mobile UI implementations
+- **One screen file** for both platforms — no separate mobile screen implementations
+- During dev, mobile may pass a full API URL to `AiFlowShell` (e.g. `http://localhost:3000/api/ai/layout`)
+
+### Legacy demo note
+
+`apps/web/app/demo-widget.tsx` composes `ContentRenderer` directly — **legacy demo only**. New features use screens in `@repo/widgets`.
 
 ```mermaid
 flowchart LR
@@ -401,15 +448,23 @@ flowchart LR
 
 ## Adding a new feature (checklist)
 
-1. **`@repo/hooks`** — create `context/<feature>/` (provider + context) and `hooks/<feature>/` (public hook + re-exports)
-2. **`@repo/hooks/package.json`** — add `"./<feature>": "./src/hooks/<feature>/index.ts"` export
-3. **`@repo/widgets`** — build organism widget(s) using `@repo/ui` atoms + `@repo/hooks/<feature>` hooks
-4. **`registry.ts`** — register widget key(s)
-5. **Apps** — wrap screen with feature provider(s), pass `ContentItem` tree to `ContentRenderer`
+1. **`@repo/types`** — add shared types if needed (types only, no dependencies)
+2. **`@repo/ui`** — create atoms/molecules with web + mobile implementations; match visual design across platforms; support desktop layout on web where relevant
+3. **`@repo/widgets/widgets/`** — build business organism widget(s) using `@repo/ui` + `@repo/hooks/<feature>`
+4. **`registry.ts`** — register widget key(s); use widgets in screens or as AI-generated content
+5. **`@repo/widgets/screens/`** — add static full-page screen(s) as single cross-platform files
+6. **`@repo/hooks`** — implement context (internal), API/server helpers (internal), and public hooks only
+7. **Integrate** — wire hooks inside widgets/screens; apps mount screens + pass routing props; web app adds API routes if server logic is needed
 
 ---
 
 ## Public APIs
+
+### `@repo/types`
+
+| Export path | Contents |
+|-------------|----------|
+| `@repo/types` | `ContentItem`, `WidgetAIMetadata`, `WidgetAIResponse`, etc. |
 
 ### `@repo/hooks`
 
@@ -417,26 +472,32 @@ flowchart LR
 |-------------|----------|
 | `@repo/hooks` | All public providers and hooks (re-exported) |
 | `@repo/hooks/demo` | `DemoBookingProvider`, `useDemoBooking` |
+| `@repo/hooks/ai` | `AIProvider`, `useAi`, `useGeneratedLayout` |
+| `@repo/hooks/ai/server` | `runWidgetAI` (app API routes only) |
 
 ### `@repo/widgets`
 
 | Export path | Contents |
 |-------------|----------|
-| `@repo/widgets` | `ContentRenderer`, `renderContentItem`, `widgetRegistry`, types |
+| `@repo/widgets` | `ContentRenderer`, registry helpers, types |
 | `@repo/widgets/renderer` | `ContentRenderer`, `renderContentItem` |
-| `@repo/widgets/registry` | `widgetRegistry` |
-| `@repo/widgets/types` | `ContentItem`, `ContentChildren`, `WidgetComponent` |
+| `@repo/widgets/registry` | `getWidgetRegistry`, `getWidgetRegistryForAI` |
+| `@repo/widgets/types` | Re-exports + widget-only types |
+| `@repo/widgets/screens/ai-flow` | `AiFlowShell`, `AiPromptScreen`, `AiResultScreen` |
 
 ---
 
 ## Design rules (summary)
 
-1. **Apps import `@repo/hooks` + `@repo/widgets`** — not `@repo/ui` directly
+1. **Apps mount `@repo/widgets/screens/*`** — not `@repo/ui`, not inline feature UI
 2. **Atoms live in `@repo/ui`** with separate web/mobile implementations
-3. **Business state lives in `@repo/hooks`** — context is internal; hooks are the public API
-4. **Widgets never import context directly** — only feature hooks from `@repo/hooks/<feature>`
-5. **Widgets are single-file** — platform branching is explicit in code when needed
-6. **Widgets compose atoms** — they do not use `react-native` or DOM primitives directly
-7. **Slots are pre-rendered** — the renderer passes `ReactNode` children; widgets just place them
-8. **Content is data** — pages/screens are driven by a `ContentItem` tree from code, config, or an API
-9. **UI-only hooks stay in `@repo/ui`** — business hooks stay in `@repo/hooks`
+3. **Shared types live in `@repo/types`** — zero dependencies
+4. **Business state lives in `@repo/hooks`** — context is internal; hooks are the public API
+5. **Widgets never import context directly** — only feature hooks from `@repo/hooks/<feature>`
+6. **Widgets and screens are single-file** — one file per widget/screen for all platforms
+7. **Screens are cross-platform** — web and mobile import the same screen file; only routing differs in apps
+8. **Widgets compose atoms** — they do not use `react-native` or DOM primitives directly
+9. **Slots are pre-rendered** — the renderer passes `ReactNode` children; widgets just place them
+10. **Content is data** — AI or config drives `ContentItem` trees rendered by `ContentRenderer`
+11. **Server AI** — Anthropic SDK runs in app API routes via `@repo/hooks/ai/server`; API key stays server-only
+12. **UI-only hooks stay in `@repo/ui`** — business hooks stay in `@repo/hooks`

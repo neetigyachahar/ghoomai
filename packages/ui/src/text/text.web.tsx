@@ -3,8 +3,8 @@ import type { TextProps } from "./text.types";
 export type { TextProps, TextVariant } from "./text.types";
 
 const variantStyles: Record<NonNullable<TextProps["variant"]>, string> = {
-  body: "text-sm text-zinc-700 dark:text-zinc-300",
-  title: "text-lg font-semibold text-zinc-900 dark:text-zinc-100",
+  body: "text-sm text-zinc-700",
+  title: "text-lg font-semibold text-zinc-900",
 };
 
 export function Text({

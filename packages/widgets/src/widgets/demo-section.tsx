@@ -26,7 +26,7 @@ export function DemoSectionWidget({
 }: DemoSectionWidgetProps) {
   return (
     <Box
-      className="flex flex-col gap-3 rounded-xl border border-zinc-200 p-4 dark:border-zinc-800"
+      className="flex flex-col gap-3 rounded-xl border border-zinc-200 p-4"
       style={containerStyle}
     >
       <Text variant="title">{title}</Text>

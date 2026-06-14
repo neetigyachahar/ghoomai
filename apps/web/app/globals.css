@@ -1,2 +1,15 @@
 @import "tailwindcss";
+@source "../../../packages/ui/src";
+@source "../../../packages/widgets/src";
+
 @import "@repo/ui/styles.css";
+
+@layer base {
+  html {
+    color-scheme: light;
+  }
+
+  body {
+    @apply bg-white text-zinc-900 antialiased;
+  }
+}

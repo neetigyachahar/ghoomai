@@ -1,14 +1,11 @@
-import { AiPromptScreen } from '@repo/widgets/screens/ai-flow';
-import { useRouter } from 'expo-router';
+import { AiResultScreen } from '@repo/widgets/screens/ai-flow';
 import { StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-export default function HomeScreen() {
-  const router = useRouter();
-
+export default function ResultScreen() {
   return (
     <SafeAreaView style={styles.container}>
-      <AiPromptScreen onNavigateToResult={() => router.push('/result')} />
+      <AiResultScreen />
     </SafeAreaView>
   );
 }
@@ -16,7 +13,6 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
     backgroundColor: '#ffffff',
   },
 });

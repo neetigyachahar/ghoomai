@@ -6,7 +6,10 @@
     ".": "./src/index.ts",
     "./renderer": "./src/renderer.tsx",
     "./registry": "./src/registry.ts",
-    "./types": "./src/types.ts"
+    "./types": "./src/types.ts",
+    "./screens/ai-flow": "./src/screens/ai-flow-shell.tsx",
+    "./screens/ai-prompt": "./src/screens/ai-prompt-screen.tsx",
+    "./screens/ai-result": "./src/screens/ai-result-screen.tsx"
   },
   "scripts": {
     "lint": "eslint . --max-warnings 0",
@@ -14,6 +17,7 @@
   },
   "dependencies": {
     "@repo/hooks": "*",
+    "@repo/types": "*",
     "@repo/ui": "*",
     "react": "^19.2.0"
   },

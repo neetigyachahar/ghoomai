@@ -4,13 +4,17 @@
   "private": true,
   "exports": {
     ".": "./src/index.ts",
-    "./demo": "./src/hooks/demo/index.ts"
+    "./demo": "./src/hooks/demo/index.ts",
+    "./ai": "./src/hooks/ai/index.ts",
+    "./ai/server": "./src/hooks/ai/server.ts"
   },
   "scripts": {
     "lint": "eslint . --max-warnings 0",
     "check-types": "tsc --noEmit"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.71.2",
+    "@repo/types": "*",
     "react": "^19.2.0"
   },
   "devDependencies": {

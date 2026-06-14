@@ -14,6 +14,11 @@
       "types": "./src/box/box.web.tsx",
       "default": "./src/box/box.web.tsx"
     },
+    "./input": {
+      "react-native": "./src/input/input.mobile.tsx",
+      "types": "./src/input/input.web.tsx",
+      "default": "./src/input/input.web.tsx"
+    },
     "./text": {
       "react-native": "./src/text/text.mobile.tsx",
       "types": "./src/text/text.web.tsx",

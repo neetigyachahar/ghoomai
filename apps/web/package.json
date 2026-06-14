@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@repo/hooks": "*",
+    "@repo/types": "*",
     "@repo/widgets": "*",
     "next": "16.2.9",
     "react": "19.2.4",
