@@ -3,6 +3,7 @@ export const colors = {
   bgSurface: "#FFFFFF",
   bgSubtle: "#F0EFEC",
   bgAccentSoft: "#CCFBF1",
+  bgAccentMuted: "#F4FBFA",
   textPrimary: "#1C1917",
   textSecondary: "#78716C",
   textMuted: "#A8A29E",

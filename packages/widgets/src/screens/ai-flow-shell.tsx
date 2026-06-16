@@ -33,4 +33,5 @@ export function AiFlowShell({
 export { AiPromptScreen } from "./ai-prompt-screen";
 export type { AiPromptScreenProps } from "./ai-prompt-screen";
 export { AiResultScreen } from "./ai-result-screen";
+export type { AiResultScreenProps } from "./ai-result-screen";
 export { AiProviderShell } from "./ai-provider-shell";

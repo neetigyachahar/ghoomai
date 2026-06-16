@@ -1,12 +1,15 @@
 import { AiResultScreen } from '@repo/widgets/screens/ai-flow';
 import { colors } from '@repo/ui/theme';
+import { useRouter } from 'expo-router';
 import { StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function ResultScreen() {
+  const router = useRouter();
+
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right', 'bottom']}>
-      <AiResultScreen />
+      <AiResultScreen onNavigateBack={() => router.replace('/')} />
     </SafeAreaView>
   );
 }

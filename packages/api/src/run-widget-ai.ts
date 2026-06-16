@@ -5,6 +5,7 @@ import type { MessageParam } from "@anthropic-ai/sdk/resources/messages/messages
 
 import type {
   AIMessage,
+  AIProgressEvent,
   WidgetAIMetadata,
   WidgetAIResponse,
 } from "@repo/types";
@@ -12,13 +13,14 @@ import type {
 import { buildSystemPrompt } from "./internal/build-prompt";
 import { parseWidgetAIResponse } from "./internal/parse-ai-response";
 import { questionResponseSchema } from "./internal/question-response-schema";
+import { sanitizeQuestionResponse } from "./internal/sanitize-question-response";
 import { sanitizeLayoutResponse } from "./internal/validate-layout-response";
-import { travelTools } from "./tools/travel-tools";
+import { createTravelTools } from "./tools/travel-tools";
 
 // Demo / production — swap back for real demos
-// const ANTHROPIC_MODEL = "claude-sonnet-4-6";
+const ANTHROPIC_MODEL = "claude-sonnet-4-6";
 // Dev — cheaper for local iteration
-const ANTHROPIC_MODEL = "claude-haiku-4-5";
+// const ANTHROPIC_MODEL = "claude-haiku-4-5";
 const MAX_TOOL_ITERATIONS = 12;
 
 const QUESTION_OUTPUT_FORMAT = zodOutputFormat(questionResponseSchema);
@@ -27,6 +29,7 @@ export interface RunWidgetAIInput {
   apiKey: string;
   messages: AIMessage[];
   widgetRegistry: Record<string, WidgetAIMetadata>;
+  onProgress?: (event: AIProgressEvent) => void;
 }
 
 function extractResponseText(
@@ -77,7 +80,7 @@ export async function runWidgetAI(
       role: message.role,
       content: message.content,
     })),
-    tools: travelTools,
+    tools: createTravelTools(input.onProgress),
   });
 
   const finalMessage = await runner.runUntilDone();
@@ -111,5 +114,5 @@ export async function runWidgetAI(
     throw new Error("AI response did not match expected schema");
   }
 
-  return parsed.parsed_output as WidgetAIResponse;
+  return sanitizeQuestionResponse(parsed.parsed_output);
 }

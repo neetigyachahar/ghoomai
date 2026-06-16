@@ -45,7 +45,33 @@ export const tripStatSchema = z.object({
 export const tripHeaderPropsSchema = z.object({
   title: z.string().min(1),
   subtitle: z.string().optional(),
-  stats: z.array(tripStatSchema).optional(),
+  stats: z
+    .array(tripStatSchema)
+    .optional()
+    .transform((stats) => {
+      if (!stats?.length) {
+        return undefined;
+      }
+
+      if (stats.length === 1) {
+        return undefined;
+      }
+
+      if (stats.length === 3) {
+        return stats.slice(0, 2);
+      }
+
+      if (stats.length > 4) {
+        return stats.slice(0, 4);
+      }
+
+      return stats;
+    })
+    .refine(
+      (stats) =>
+        stats === undefined || stats.length === 2 || stats.length === 4,
+      { message: "trip-header stats must contain exactly 2 or 4 items" },
+    ),
 });
 
 export const planChoiceOptionSchema = z.object({
@@ -60,7 +86,10 @@ export const planChoicePropsSchema = z.object({
   stepLabel: z.string().optional(),
   stepTime: z.string().optional(),
   description: z.string().optional(),
-  options: z.array(planChoiceOptionSchema).min(2),
+  options: z
+    .array(planChoiceOptionSchema)
+    .min(1)
+    .transform((options) => options.slice(0, 2)),
 });
 
 export const demoSectionPropsSchema = z.object({

@@ -1,22 +1,27 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 
 import { DemoBookingProvider } from "@repo/hooks/demo";
 import { useGeneratedLayout } from "@repo/hooks/ai";
 import { Box } from "@repo/ui/box";
 import { ScrollBox } from "@repo/ui/scroll-box";
-import { Text } from "@repo/ui/text";
 import { colors } from "@repo/ui/theme";
 
 import { ContentRenderer } from "../renderer";
 
+export interface AiResultScreenProps {
+  onNavigateBack?: () => void;
+}
+
 function ResultBody({ children }: { children: ReactNode }) {
   return (
     <Box
-      className="w-full px-4 pt-6 pb-12"
+      className="mx-auto w-full max-w-3xl px-4 pt-6 pb-12 md:px-8 md:pt-10 lg:max-w-5xl lg:px-12 lg:pb-16"
       style={{
         width: "100%",
+        maxWidth: 1024,
+        alignSelf: "center",
         paddingHorizontal: 16,
         paddingTop: 24,
         paddingBottom: 48,
@@ -28,8 +33,18 @@ function ResultBody({ children }: { children: ReactNode }) {
   );
 }
 
-export function AiResultScreen() {
+export function AiResultScreen({ onNavigateBack }: AiResultScreenProps = {}) {
   const { layout } = useGeneratedLayout();
+
+  useEffect(() => {
+    if (!layout) {
+      onNavigateBack?.();
+    }
+  }, [layout, onNavigateBack]);
+
+  if (!layout) {
+    return null;
+  }
 
   const shell = (
     <Box
@@ -44,24 +59,14 @@ export function AiResultScreen() {
       <ScrollBox
         style={{ flex: 1, width: "100%", backgroundColor: colors.bgBase }}
         contentContainerStyle={{ width: "100%" }}
+        contentContainerClassName="flex w-full flex-col items-center"
       >
-        {layout ? (
-          <ResultBody>
-            <ContentRenderer content={layout} />
-          </ResultBody>
-        ) : (
-          <ResultBody>
-            <Text variant="title">No layout yet</Text>
-            <Text>Generate a layout from the prompt screen first.</Text>
-          </ResultBody>
-        )}
+        <ResultBody>
+          <ContentRenderer content={layout} />
+        </ResultBody>
       </ScrollBox>
     </Box>
   );
 
-  return layout ? (
-    <DemoBookingProvider>{shell}</DemoBookingProvider>
-  ) : (
-    shell
-  );
+  return <DemoBookingProvider>{shell}</DemoBookingProvider>;
 }

@@ -44,6 +44,7 @@ export function QuestionSheet({
 }: QuestionSheetProps) {
   const canSubmitFreeText =
     freeTextValue.trim().length > 0 && !disabled && !loading;
+  const showActiveButton = canSubmitFreeText || loading;
 
   return (
     <div
@@ -92,8 +93,8 @@ export function QuestionSheet({
           aria-label="Send answer"
           className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition-colors disabled:cursor-not-allowed disabled:opacity-40"
           style={{
-            backgroundColor: canSubmitFreeText ? colors.accent : colors.bgSubtle,
-            border: canSubmitFreeText
+            backgroundColor: showActiveButton ? colors.accent : colors.bgSubtle,
+            border: showActiveButton
               ? "none"
               : `1px solid ${colors.borderDefault}`,
           }}

@@ -1,12 +1,15 @@
 import { StyleSheet, Text, View, type StyleProp, type ViewStyle } from "react-native";
 
 import { colors } from "../theme/colors";
+import { normalizeTripStats } from "./trip-header.types";
 import type { TripHeaderProps } from "./trip-header.types";
 
 export type { TripHeaderProps, TripStat } from "./trip-header.types";
+export { normalizeTripStats } from "./trip-header.types";
 
 export function TripHeader({ title, subtitle, stats, style }: TripHeaderProps) {
-  const hasStats = Array.isArray(stats) && stats.length > 0;
+  const displayStats = normalizeTripStats(stats);
+  const hasStats = Boolean(displayStats?.length);
 
   return (
     <View style={[styles.container, style as StyleProp<ViewStyle>]}>
@@ -20,7 +23,7 @@ export function TripHeader({ title, subtitle, stats, style }: TripHeaderProps) {
 
       {hasStats ? (
         <View style={styles.statGrid}>
-          {stats!.map((stat, index) => (
+          {displayStats!.map((stat, index) => (
             <View key={`${stat.label}-${index}`} style={styles.statCell}>
               <Text style={styles.statLabel}>{stat.label}</Text>
               <Text style={styles.statValue}>{stat.value}</Text>

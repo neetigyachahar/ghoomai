@@ -1,5 +1,7 @@
 import type { WidgetAIResponse } from "@repo/types";
 
+import { sanitizeQuestionResponse } from "./sanitize-question-response";
+
 function extractJsonText(text: string): string {
   const trimmed = text.trim();
 
@@ -85,15 +87,17 @@ export function parseWidgetAIResponse(text: string): WidgetAIResponse {
     ) {
       throw new Error("AI response options must be an array of strings");
     }
+
+    return sanitizeQuestionResponse(parsed);
   }
 
-  if (parsed.type === "layout" && !parsed.layout) {
-    throw new Error("AI response missing layout");
+  if (parsed.type === "layout") {
+    if (!parsed.layout) {
+      throw new Error("AI response missing layout");
+    }
+
+    return parsed;
   }
 
-  if (parsed.type !== "question" && parsed.type !== "layout") {
-    throw new Error("AI response has invalid type");
-  }
-
-  return parsed;
+  throw new Error("AI response has invalid type");
 }

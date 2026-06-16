@@ -26,6 +26,7 @@ export function QuestionSheet({
 }: QuestionSheetProps) {
   const canSubmitFreeText =
     freeTextValue.trim().length > 0 && !disabled && !loading;
+  const showActiveButton = canSubmitFreeText || loading;
 
   return (
     <View style={styles.sheet}>
@@ -64,10 +65,10 @@ export function QuestionSheet({
           disabled={!canSubmitFreeText}
           style={[
             styles.sendButton,
-            canSubmitFreeText
+            showActiveButton
               ? styles.sendButtonActive
               : styles.sendButtonInactive,
-            !canSubmitFreeText && styles.sendButtonDisabled,
+            !showActiveButton && styles.sendButtonDisabled,
           ]}
           accessibilityLabel="Send answer"
         >

@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Pressable,
@@ -12,6 +13,9 @@ import type { PromptBarProps } from "./prompt-bar.types";
 
 export type { PromptBarProps } from "./prompt-bar.types";
 
+const MIN_INPUT_HEIGHT = 38;
+const MAX_INPUT_HEIGHT = 128;
+
 export function PromptBar({
   value,
   onChangeText,
@@ -19,19 +23,35 @@ export function PromptBar({
   onSubmit,
   disabled = false,
   loading = false,
+  embedded = false,
 }: PromptBarProps) {
   const canSubmit = value.trim().length > 0 && !disabled && !loading;
+  const showActiveButton = canSubmit || loading;
+  const [inputHeight, setInputHeight] = useState(MIN_INPUT_HEIGHT);
 
-  return (
-    <View style={styles.container}>
+  useEffect(() => {
+    if (!value) {
+      setInputHeight(MIN_INPUT_HEIGHT);
+    }
+  }, [value]);
+
+  const inputRow = (
+    <>
       <TextInput
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder}
         placeholderTextColor={colors.textMuted}
         editable={!disabled && !loading}
-        style={styles.input}
+        multiline
+        scrollEnabled={inputHeight >= MAX_INPUT_HEIGHT}
+        style={[styles.input, { height: Math.max(MIN_INPUT_HEIGHT, inputHeight) }]}
+        onContentSizeChange={(event) => {
+          const nextHeight = event.nativeEvent.contentSize.height;
+          setInputHeight(Math.min(Math.max(MIN_INPUT_HEIGHT, nextHeight), MAX_INPUT_HEIGHT));
+        }}
         returnKeyType="send"
+        blurOnSubmit={false}
         onSubmitEditing={() => {
           if (canSubmit) {
             onSubmit?.();
@@ -43,8 +63,8 @@ export function PromptBar({
         disabled={!canSubmit}
         style={[
           styles.sendButton,
-          canSubmit ? styles.sendButtonActive : styles.sendButtonInactive,
-          !canSubmit && styles.sendButtonDisabled,
+          showActiveButton ? styles.sendButtonActive : styles.sendButtonInactive,
+          !showActiveButton && styles.sendButtonDisabled,
         ]}
         accessibilityLabel="Send"
       >
@@ -56,14 +76,20 @@ export function PromptBar({
           />
         )}
       </Pressable>
-    </View>
+    </>
   );
+
+  if (embedded) {
+    return <View style={styles.embeddedRow}>{inputRow}</View>;
+  }
+
+  return <View style={styles.container}>{inputRow}</View>;
 }
 
 const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "flex-end",
     borderWidth: 1,
     borderColor: colors.borderDefault,
     backgroundColor: colors.bgSurface,
@@ -82,7 +108,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 0,
     margin: 0,
     includeFontPadding: false,
-    textAlignVertical: "center",
+    textAlignVertical: "top",
   },
   sendButton: {
     width: 40,
@@ -101,5 +127,13 @@ const styles = StyleSheet.create({
   },
   sendButtonDisabled: {
     opacity: 1,
+  },
+  embeddedRow: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    paddingLeft: 16,
+    paddingRight: 8,
+    paddingVertical: 6,
+    minHeight: 52,
   },
 });

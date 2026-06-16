@@ -86,7 +86,7 @@ const widgetDefinitions = {
         type: "array",
         required: false,
         description:
-          "2–4 key facts about the trip rendered as a stat grid. Each item is { label, value } with short text. Examples: {label:\"Dates\",value:\"Dec 14–15\"}, {label:\"Travelers\",value:\"2\"}, {label:\"Nights\",value:\"1\"}, {label:\"Budget\",value:\"₹6k pp\"}.",
+          "Exactly 2 or 4 key facts rendered as a 2-column stat grid (never 1 or 3). Each item is { label, value } with short text. Examples (4): Dates, Nights, Travelers, Budget. Examples (2): Dates, Budget.",
       },
     },
   },
@@ -123,7 +123,7 @@ const widgetDefinitions = {
   "plan-choice": {
     component: PlanChoiceWidget as unknown as WidgetComponent,
     description:
-      "Mutually exclusive pick-one step with or-dividers. User taps ONE option to lock it in. Use ONLY when the user must choose a single alternative (bus vs train, one hotel, one activity for the same time slot). Do NOT use to list places or highlights the user wants to read or visit all of.",
+      "Mutually exclusive pick-one step with or-dividers. Use when the user must choose between alternatives (bus vs flight, hotels, activity slots). Max 2 options — skip plan-choice if only one option (use travel-recommendation). Each option needs id (slot key), label, and summary. NOT for listing all places without picking (use content-block for that).",
     props: {
       dayLabel: {
         type: "string",
@@ -158,7 +158,7 @@ const widgetDefinitions = {
         type: "array",
         required: true,
         description:
-          "Ordered list of choices. Each item needs id (slot name), label (shown on the option), and optional summary (short teaser before selection).",
+          "Ordered choices — 1–2 items max. Each item: id (children slot key), label (place or mode name), summary (one line why).",
       },
     },
     slots: {

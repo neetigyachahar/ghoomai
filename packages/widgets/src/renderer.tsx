@@ -95,11 +95,6 @@ function renderContentItems(
   ));
 }
 
-function getStepDayLabel(item: ContentItem): string | undefined {
-  const dayLabel = item.props?.dayLabel;
-  return typeof dayLabel === "string" ? dayLabel : undefined;
-}
-
 function getContentBlockProps(item: ContentItem): {
   heading?: string;
   content: string;
@@ -150,66 +145,73 @@ function renderTripLayout(items: ContentItem[]): ReactNode {
   const header = filtered.find((item) => item.key === "trip-header") ?? null;
   const steps = filtered.filter((item) => item.key !== "trip-header");
   const segments = segmentLayoutSteps(steps);
-  let previousDayLabel: string | undefined;
 
-  return (
-    <Box style={{ flexDirection: "column", width: "100%" }}>
-      {header ? renderContentItem(header) : null}
-      {segments.map((segment, segmentIndex) => {
-        const isMultiBlockGroup =
-          segment.type === "content-block-group" && segment.items.length > 1;
-        const marginTop =
-          segmentIndex === 0
-            ? header
-              ? isMultiBlockGroup
-                ? HEADER_TO_GROUP_GAP
-                : SECTION_GAP
-              : 0
-            : SECTION_GAP;
+  const stepSegments = segments.map((segment, segmentIndex) => {
+    const isMultiBlockGroup =
+      segment.type === "content-block-group" && segment.items.length > 1;
+    const isFirst = segmentIndex === 0;
+    const marginTop = isFirst
+      ? header
+        ? isMultiBlockGroup
+          ? HEADER_TO_GROUP_GAP
+          : SECTION_GAP
+        : 0
+      : SECTION_GAP;
+    const marginClass = isFirst && header ? "lg:mt-0" : undefined;
 
-        if (segment.type === "content-block-group") {
-          if (segment.items.length === 1) {
-            const item = segment.items[0]!;
-            const isLastStep = segmentIndex === segments.length - 1;
+    const segmentBox = (key: string, content: ReactNode) => (
+      <Box key={key} className={marginClass} style={{ marginTop }}>
+        {content}
+      </Box>
+    );
 
-            return (
-              <Box key={`content-block-${segment.stepIndex}`} style={{ marginTop }}>
-                {renderContentItem(item, { isLastStep })}
-              </Box>
-            );
-          }
-
-          return (
-            <Box key={`content-block-group-${segment.stepIndex}`} style={{ marginTop }}>
-              <ContentBlockGroup
-                items={segment.items.map((item) => getContentBlockProps(item))}
-              />
-            </Box>
-          );
-        }
-
-        const item = segment.item;
-        const dayLabel = getStepDayLabel(item);
-        const hideDayLabel =
-          dayLabel !== undefined &&
-          dayLabel === previousDayLabel &&
-          TIMELINE_WIDGETS.has(item.key);
-
-        if (dayLabel !== undefined) {
-          previousDayLabel = dayLabel;
-        }
-
+    if (segment.type === "content-block-group") {
+      if (segment.items.length === 1) {
+        const item = segment.items[0]!;
         const isLastStep = segmentIndex === segments.length - 1;
 
-        return (
-          <Box key={`${item.key}-${segment.stepIndex}`} style={{ marginTop }}>
-            {renderContentItem(item, {
-              isLastStep,
-              hideDayLabel,
-            })}
-          </Box>
+        return segmentBox(
+          `content-block-${segment.stepIndex}`,
+          renderContentItem(item, { isLastStep }),
         );
-      })}
+      }
+
+      return segmentBox(
+        `content-block-group-${segment.stepIndex}`,
+        <ContentBlockGroup
+          items={segment.items.map((item) => getContentBlockProps(item))}
+        />,
+      );
+    }
+
+    const item = segment.item;
+    const isLastStep = segmentIndex === segments.length - 1;
+
+    return segmentBox(
+      `${item.key}-${segment.stepIndex}`,
+      renderContentItem(item, { isLastStep }),
+    );
+  });
+
+  if (!header) {
+    return (
+      <Box style={{ flexDirection: "column", width: "100%" }}>
+        {stepSegments}
+      </Box>
+    );
+  }
+
+  return (
+    <Box
+      className="flex w-full flex-col lg:grid lg:grid-cols-[minmax(0,280px)_minmax(0,1fr)] lg:items-start lg:gap-x-12"
+      style={{ flexDirection: "column", width: "100%" }}
+    >
+      <Box className="lg:sticky lg:top-8 lg:self-start">
+        {renderContentItem(header)}
+      </Box>
+      <Box className="min-w-0" style={{ flexDirection: "column", width: "100%" }}>
+        {stepSegments}
+      </Box>
     </Box>
   );
 }

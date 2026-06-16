@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 import { useAi } from "@repo/hooks/ai";
+import { AiProgressStrip } from "@repo/ui/ai-progress-strip";
 import { Box } from "@repo/ui/box";
 import { BrandMark } from "@repo/ui/brand-mark";
 import { PromptBar } from "@repo/ui/prompt-bar";
@@ -28,9 +29,11 @@ export function AiPromptScreen({
     pendingOptions,
     error,
     isLoading,
+    displayProgress,
   } = useAi({ onNavigateToResult });
 
   const showQuestionSheet = Boolean(pendingQuestion);
+  const showIntegratedComposer = isLoading && Boolean(displayProgress);
 
   const handlePromptSubmit = () => {
     const trimmed = promptInput.trim();
@@ -61,6 +64,18 @@ export function AiPromptScreen({
     setFreeTextInput("");
   };
 
+  const promptBar = (
+    <PromptBar
+      value={promptInput}
+      onChangeText={setPromptInput}
+      placeholder="What's on your mind?"
+      onSubmit={handlePromptSubmit}
+      loading={isLoading}
+      disabled={isLoading}
+      embedded={showIntegratedComposer}
+    />
+  );
+
   const bottomContent = (
     <Box
       className="flex w-full flex-col gap-3"
@@ -80,14 +95,27 @@ export function AiPromptScreen({
       ) : null}
 
       {!showQuestionSheet ? (
-        <PromptBar
-          value={promptInput}
-          onChangeText={setPromptInput}
-          placeholder="What's on your mind?"
-          onSubmit={handlePromptSubmit}
-          loading={isLoading}
-          disabled={isLoading}
-        />
+        showIntegratedComposer && displayProgress ? (
+          <Box
+            className="w-full overflow-hidden rounded-2xl border border-stone-200 bg-white transition-colors focus-within:border-teal-700 focus-within:ring-2 focus-within:ring-teal-700/20"
+            style={{
+              width: "100%",
+              borderRadius: 16,
+              borderWidth: 1,
+              borderColor: colors.borderDefault,
+              backgroundColor: colors.bgSurface,
+              overflow: "hidden",
+            }}
+          >
+            <AiProgressStrip
+              eventType={displayProgress.type}
+              embedded
+            />
+            {promptBar}
+          </Box>
+        ) : (
+          promptBar
+        )
       ) : null}
 
       {error ? (

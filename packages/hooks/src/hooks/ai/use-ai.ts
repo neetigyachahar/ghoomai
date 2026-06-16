@@ -1,10 +1,11 @@
 "use client";
 
-import { useCallback, useContext } from "react";
+import { useCallback, useContext, useState } from "react";
 
-import type { AIStatus } from "@repo/types";
+import type { AIProgressEvent, AIStatus } from "@repo/types";
 
 import { AIContext } from "../../context/ai/ai-context";
+import { useQueuedProgress } from "./use-queued-progress";
 
 export interface UseAiOptions {
   onNavigateToResult?: () => void;
@@ -34,9 +35,32 @@ export function useAi(options: UseAiOptions = {}) {
     reset,
   } = context;
 
+  const [latestProgress, setLatestProgress] = useState<AIProgressEvent | null>(
+    null,
+  );
+  const [progressTick, setProgressTick] = useState(0);
+
+  const isLoading = status === "loading";
+  const displayProgress = useQueuedProgress(
+    latestProgress,
+    progressTick,
+    isLoading,
+  );
+
   const handleResponse = useCallback(
     async (conversationMessages: Parameters<typeof callServer>[0]) => {
-      const response = await callServer(conversationMessages);
+      setLatestProgress(null);
+      setProgressTick(0);
+
+      const response = await callServer(conversationMessages, {
+        onProgress: (event) => {
+          setPendingQuestion(null);
+          setPendingOptions([]);
+
+          setLatestProgress(event);
+          setProgressTick((tick) => tick + 1);
+        },
+      });
 
       if (response.type === "question") {
         setPendingQuestion(response.question);
@@ -119,8 +143,6 @@ export function useAi(options: UseAiOptions = {}) {
     [handleResponse, messages, setError, setMessages, setStatus, status],
   );
 
-  const isLoading = status === "loading";
-
   return {
     onPromptEnter,
     onAnswerQuestion,
@@ -130,5 +152,6 @@ export function useAi(options: UseAiOptions = {}) {
     error,
     reset,
     isLoading,
+    displayProgress,
   };
 }

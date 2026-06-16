@@ -82,8 +82,27 @@ function sanitizePlanChoiceItem(
   return {
     key: "plan-choice",
     props: propsResult.data,
-    children: sanitizeChildren(item.children, contentItemSchema, allowedKeys),
+    children: filterPlanChoiceChildren(
+      sanitizeChildren(item.children, contentItemSchema, allowedKeys),
+      propsResult.data.options.map((option) => option.id),
+    ),
   };
+}
+
+function filterPlanChoiceChildren(
+  children: ContentChildren | null | undefined,
+  optionIds: string[],
+): ContentChildren | null {
+  if (!children) {
+    return null;
+  }
+
+  const allowed = new Set(optionIds);
+  const filtered = Object.fromEntries(
+    Object.entries(children).filter(([slotId]) => allowed.has(slotId)),
+  );
+
+  return Object.keys(filtered).length > 0 ? filtered : null;
 }
 
 export function sanitizeContentItem(

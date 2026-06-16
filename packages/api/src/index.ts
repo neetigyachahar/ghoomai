@@ -1,4 +1,5 @@
 export { runWidgetAI, type RunWidgetAIInput } from "./run-widget-ai";
+export { formatSseEvent } from "./internal/sse";
 export {
   GETBusById,
   GETBuses,

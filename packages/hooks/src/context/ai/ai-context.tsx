@@ -10,11 +10,18 @@ import {
 
 import type {
   AIMessage,
+  AIProgressEvent,
   AIStatus,
   ContentItem,
   WidgetAIMetadata,
   WidgetAIResponse,
 } from "@repo/types";
+
+import { parseSseStream } from "../../hooks/ai/parse-sse-stream";
+
+export interface CallServerOptions {
+  onProgress?: (event: AIProgressEvent) => void;
+}
 
 export interface AIContextValue {
   widgetRegistry: Record<string, WidgetAIMetadata>;
@@ -31,7 +38,10 @@ export interface AIContextValue {
   setPendingOptions: (options: string[]) => void;
   setGeneratedLayout: (layout: ContentItem | ContentItem[] | null) => void;
   setError: (error: string | null) => void;
-  callServer: (messages: AIMessage[]) => Promise<WidgetAIResponse>;
+  callServer: (
+    messages: AIMessage[],
+    options?: CallServerOptions,
+  ) => Promise<WidgetAIResponse>;
   reset: () => void;
 }
 
@@ -58,7 +68,10 @@ export function AIProvider({
   const [error, setError] = useState<string | null>(null);
 
   const callServer = useCallback(
-    async (conversationMessages: AIMessage[]): Promise<WidgetAIResponse> => {
+    async (
+      conversationMessages: AIMessage[],
+      options?: CallServerOptions,
+    ): Promise<WidgetAIResponse> => {
       const response = await fetch(apiEndpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -75,7 +88,34 @@ export function AIProvider({
         throw new Error(body?.error ?? `Request failed (${response.status})`);
       }
 
-      return (await response.json()) as WidgetAIResponse;
+      if (!response.body) {
+        throw new Error("No response body");
+      }
+
+      let result: WidgetAIResponse | null = null;
+
+      for await (const message of parseSseStream(response.body)) {
+        if (message.event === "progress") {
+          options?.onProgress?.(message.data as AIProgressEvent);
+          continue;
+        }
+
+        if (message.event === "result") {
+          result = message.data as WidgetAIResponse;
+          continue;
+        }
+
+        if (message.event === "error") {
+          const data = message.data as { error?: string };
+          throw new Error(data.error ?? "Failed to generate layout");
+        }
+      }
+
+      if (!result) {
+        throw new Error("Stream ended without a result");
+      }
+
+      return result;
     },
     [apiEndpoint, widgetRegistry],
   );

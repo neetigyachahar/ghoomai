@@ -21,3 +21,16 @@ export type AIQuestion = {
 export type WidgetAIResponse =
   | AIQuestion
   | { type: "layout"; layout: ContentItem | ContentItem[] };
+
+export type AIProgressEventType =
+  | "search_flights"
+  | "search_buses"
+  | "search_trains"
+  | "search_cabs"
+  | "search_hotels"
+  | "get_user_personalization"
+  | "building_layout";
+
+export type AIProgressEvent = {
+  type: AIProgressEventType;
+};

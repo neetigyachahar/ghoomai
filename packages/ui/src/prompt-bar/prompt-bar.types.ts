@@ -5,4 +5,6 @@ export interface PromptBarProps {
   onSubmit?: () => void;
   disabled?: boolean;
   loading?: boolean;
+  /** Omits outer border/radius — use inside a shared prompt composer shell. */
+  embedded?: boolean;
 }
