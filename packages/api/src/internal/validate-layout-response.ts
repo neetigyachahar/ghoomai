@@ -69,7 +69,9 @@ function sanitizePlanChoiceItem(
   contentItemSchema: ZodType<ContentItem>,
   allowedKeys: Set<string>,
 ): ContentItem {
-  const propsResult = planChoicePropsSchema.safeParse(item.props ?? {});
+  const propsResult = planChoicePropsSchema.safeParse(
+    normalizePlanChoiceProps(item),
+  );
 
   if (!propsResult.success) {
     return createWidgetErrorItem(
@@ -86,6 +88,62 @@ function sanitizePlanChoiceItem(
       sanitizeChildren(item.children, contentItemSchema, allowedKeys),
       propsResult.data.options.map((option) => option.id),
     ),
+  };
+}
+
+function getSlotLabelFromChildren(
+  children: ContentChildren | null | undefined,
+  slotId: string,
+): string | undefined {
+  const firstItem = toContentItemArray(children?.[slotId])[0];
+
+  if (!firstItem || typeof firstItem !== "object" || firstItem.props == null) {
+    return undefined;
+  }
+
+  const props = firstItem.props as Record<string, unknown>;
+  const labelCandidates = [
+    props.sectionTitle,
+    props.title,
+    props.label,
+    props.heading,
+  ];
+  const label = labelCandidates.find(
+    (candidate): candidate is string =>
+      typeof candidate === "string" && candidate.trim().length > 0,
+  );
+
+  return label?.trim();
+}
+
+function normalizePlanChoiceProps(item: ContentItem): unknown {
+  const rawProps =
+    item.props && typeof item.props === "object"
+      ? (item.props as Record<string, unknown>)
+      : {};
+
+  if (Array.isArray(rawProps.options) && rawProps.options.length > 0) {
+    return rawProps;
+  }
+
+  // Backward-compatible fallback: infer options from children slot ids.
+  const childSlotIds = Object.keys(item.children ?? {});
+  if (childSlotIds.length === 0) {
+    return rawProps;
+  }
+
+  const fallbackOptions = childSlotIds.slice(0, 2).map((slotId) => ({
+    id: slotId,
+    label:
+      getSlotLabelFromChildren(item.children, slotId) ??
+      slotId
+        .replace(/[-_]+/g, " ")
+        .replace(/\b\w/g, (char) => char.toUpperCase()),
+  }));
+
+  return {
+    ...rawProps,
+    options: fallbackOptions,
   };
 }
 
