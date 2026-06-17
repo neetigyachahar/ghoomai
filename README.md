@@ -1,159 +1,91 @@
-# Turborepo starter
+# Ghoomai
 
-This Turborepo starter is maintained by the Turborepo core team.
+AI-powered trip planning monorepo. Shared UI and business logic live in `packages/`; platform apps are thin routing shells.
 
-## Using this example
+## Repository layout
 
-Run the following command:
+| Path | Purpose |
+|------|---------|
+| `apps/web` | Next.js static export → Firebase Hosting |
+| `apps/mobile` | Expo (iOS, Android, web) |
+| `apps/functions` | Firebase Cloud Function (`ghoomaiApi`) — all `/api/*` routes |
+| `packages/api` | Server handlers, AI orchestration, travel APIs (`@repo/api`) |
+| `packages/widgets` | Screens, widgets, registry (`@repo/widgets`) |
+| `packages/hooks` | Client state and feature hooks (`@repo/hooks`) |
+| `packages/ui` | Cross-platform atoms (`@repo/ui`) |
+| `packages/types` | Shared types (`@repo/types`) |
 
-```sh
-npx create-turbo@latest
+Architecture details: [packages/widgets/ARCHITECTURE.md](packages/widgets/ARCHITECTURE.md)
+
+## Prerequisites
+
+- [Bun](https://bun.sh) (package manager)
+- [Firebase CLI](https://firebase.google.com/docs/cli) (deploy + emulators)
+
+## Local development
+
+```bash
+bun install
+
+# Web (Next.js dev server)
+bun run --cwd apps/web dev
+
+# Mobile (Expo)
+bun run --cwd apps/mobile start
+
+# API (Firebase Functions emulator)
+bun run --cwd apps/functions dev
 ```
 
-## What's inside?
+### API during local dev
 
-This Turborepo includes the following packages/apps:
+The web app is a **static export** in production — it has no server-side API routes. Locally, point clients at the Functions emulator:
 
-### Apps and Packages
+**Web** — copy emulator URL to `apps/web/.env.development.local`:
 
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
-
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
-
-### Utilities
-
-This Turborepo has some additional tools already setup for you:
-
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
-
-### Build
-
-To build all apps and packages, run the following command:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
-```sh
-cd my-turborepo
-turbo build
+```env
+NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:5001/ghoomai/us-central1/ghoomaiApi
 ```
 
-Without global `turbo`, use your package manager:
+**Mobile** — copy to `apps/mobile/.env`:
 
-```sh
-cd my-turborepo
-npx turbo build
-bun dlx turbo build
-bun exec turbo build
+```env
+EXPO_PUBLIC_API_BASE_URL=http://127.0.0.1:5001/ghoomai/us-central1/ghoomaiApi
 ```
 
-You can build a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
+**Functions** — copy `apps/functions/.env.example` → `apps/functions/.env` and set `ANTHROPIC_API_KEY`.
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
+> Do not put `NEXT_PUBLIC_*` values in `apps/web/.env.local` — that file is loaded during `next build` and overrides `.env.production`.
 
-```sh
-turbo build --filter=docs
+## Deployment
+
+Firebase project: `ghoomai` (see `.firebaserc`).
+
+```bash
+# Build + deploy everything
+firebase deploy
+
+# Deploy individually
+firebase deploy --only hosting    # static web → ghoomai.web.app
+firebase deploy --only functions  # API → Cloud Run
 ```
 
-Without global `turbo`:
+### Before first deploy
 
-```sh
-npx turbo build --filter=docs
-bun exec turbo build --filter=docs
-bun exec turbo build --filter=docs
+1. **Web** — copy `apps/web/.env.example` → `apps/web/.env.production` with your Functions URL (`https://….a.run.app`).
+2. **Functions** — set the API key:
+   ```bash
+   firebase functions:secrets:set ANTHROPIC_API_KEY
+   ```
+3. **Functions** — ensure public invoker is enabled (`invoker: "public"` in `apps/functions/src/index.ts`).
+
+Hosting predeploy runs `next build` (static export to `apps/web/out`). Functions predeploy bundles `@repo/api` via esbuild and strips workspace deps from `package.json` for Cloud Build.
+
+## Scripts
+
+```bash
+bun run build          # turbo build all packages
+bun run dev            # turbo dev
+bun run lint           # turbo lint
+bun run check-types    # turbo typecheck
 ```
-
-### Develop
-
-To develop all apps and packages, run the following command:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
-```sh
-cd my-turborepo
-turbo dev
-```
-
-Without global `turbo`, use your package manager:
-
-```sh
-cd my-turborepo
-npx turbo dev
-bun exec turbo dev
-bun exec turbo dev
-```
-
-You can develop a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
-turbo dev --filter=web
-```
-
-Without global `turbo`:
-
-```sh
-npx turbo dev --filter=web
-bun exec turbo dev --filter=web
-bun exec turbo dev --filter=web
-```
-
-### Remote Caching
-
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
-
-Turborepo can use a technique known as [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
-
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
-```sh
-cd my-turborepo
-turbo login
-```
-
-Without global `turbo`, use your package manager:
-
-```sh
-cd my-turborepo
-npx turbo login
-bun exec turbo login
-bun exec turbo login
-```
-
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
-
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
-turbo link
-```
-
-Without global `turbo`:
-
-```sh
-npx turbo link
-bun exec turbo link
-bun exec turbo link
-```
-
-## Useful Links
-
-Learn more about the power of Turborepo:
-
-- [Tasks](https://turborepo.dev/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.dev/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.dev/docs/reference/configuration)
-- [CLI Usage](https://turborepo.dev/docs/reference/command-line-reference)

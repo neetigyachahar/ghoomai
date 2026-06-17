@@ -1,5 +1,8 @@
 export { runWidgetAI, type RunWidgetAIInput } from "./run-widget-ai";
 export { formatSseEvent } from "./internal/sse";
+export { GETAiConfig, POSTAiLayout } from "./handlers/ai-routes";
+export { handleApiRequest, normalizeApiPath } from "./router";
+export { nodeRequestToWeb, webResponseToNode } from "./adapters/node-http";
 export {
   getClientApiKeyFromRequest,
   isServerApiKeyConfigured,

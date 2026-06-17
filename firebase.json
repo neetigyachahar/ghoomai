@@ -1,0 +1,44 @@
+{
+  "hosting": {
+    "public": "apps/web/out",
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "cleanUrls": true,
+    "predeploy": ["bun run --cwd apps/web build"]
+  },
+  "functions": [
+    {
+      "source": "apps/functions",
+      "codebase": "default",
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log",
+        "src",
+        "scripts",
+        "*.ts",
+        "tsconfig.json",
+        "eslint.config.mjs",
+        ".package.json.deploy-backup"
+      ],
+      "predeploy": [
+        "bun run --cwd apps/functions build",
+        "node apps/functions/scripts/prepare-deploy.mjs"
+      ],
+      "postdeploy": [
+        "node apps/functions/scripts/restore-deploy.mjs"
+      ]
+    }
+  ],
+  "emulators": {
+    "functions": {
+      "port": 5001
+    },
+    "hosting": {
+      "port": 5000
+    },
+    "ui": {
+      "enabled": true
+    }
+  }
+}

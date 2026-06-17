@@ -1,36 +1,41 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Web (`apps/web`)
 
-## Getting Started
+Next.js app deployed as a **static export** to Firebase Hosting. All API calls go to the Firebase Function configured via `NEXT_PUBLIC_API_BASE_URL`.
 
-First, run the development server:
+## Development
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+bun run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+For API calls during dev, create `.env.development.local` (see `.env.example`) pointing at the Functions emulator or deployed API.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Build
 
-## Learn More
+```bash
+bun run build   # outputs static files to out/
+```
 
-To learn more about Next.js, take a look at the following resources:
+`next.config.ts` sets `output: "export"`. There are no API routes — the web app is a client-only shell around `@repo/widgets` screens.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Environment files
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+| File | Used by | Purpose |
+|------|---------|---------|
+| `.env.production` | `next build`, Firebase deploy | Production API URL (baked into JS bundle) |
+| `.env.development.local` | `next dev` only | Emulator or local API URL |
+| `.env.example` | — | Template and documentation |
 
-## Deploy on Vercel
+**Important:** never put environment-specific `NEXT_PUBLIC_*` values in `.env.local` — Next.js loads that file during production builds and it overrides `.env.production`.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Deploy
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Deployed via root Firebase config:
+
+```bash
+firebase deploy --only hosting
+```
+
+Predeploy runs `bun run build` automatically. Ensure `.env.production` exists with the correct `NEXT_PUBLIC_API_BASE_URL` before deploying.

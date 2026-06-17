@@ -53,9 +53,10 @@ flowchart TB
 
   Web --> Screens
   Mobile --> Screens
-  Web --> RunAI
+  Functions["apps/functions"] --> apiPkg
+  FeatureHooks -.->|fetch /api/*| Functions
   RunAI --> ServerAPIs
-  RunAI --> Types
+  apiPkg --> typesPkg
   Screens --> FeatureHooks
   Screens --> Widgets
   Providers --> Renderer
@@ -75,7 +76,7 @@ flowchart TB
 ### `@repo/types` — shared type shapes
 
 - **Types only** — no runtime code, no package dependencies
-- Used by `@repo/hooks`, `@repo/widgets`, and app API routes
+- Used by `@repo/hooks`, `@repo/widgets`, and `@repo/api`
 - Examples: `ContentItem`, `WidgetAIMetadata`, `WidgetAIResponse`
 
 ```
@@ -89,19 +90,25 @@ packages/types/src/
 ### `@repo/api` — server-side APIs and orchestration
 
 - **Server-only** — AI orchestration, external API clients, tool definitions, and shared route handler logic
-- Used exclusively by app API routes (`apps/web/app/api/*`); never imported by client hooks, widgets, or mobile
+- Served by `apps/functions` (`ghoomaiApi`); never imported by client hooks, widgets, or mobile
 - Depends on `@repo/types` only among workspace packages
 - No React, no UI, no client state
 
 ```
 packages/api/src/
 ├── index.ts
+├── router.ts                  # handleApiRequest — central /api/* dispatch
 ├── run-widget-ai.ts
+├── handlers/
+│   ├── ai-routes.ts
+│   └── travel-routes.ts
+├── adapters/
+│   └── node-http.ts           # Express ↔ Web Request bridge
+├── services/travel/
+├── tools/
 └── internal/
     └── build-prompt.ts
 ```
-
-Future modules (AI tools, third-party APIs, data lookups) are added here as the server surface grows.
 
 ### `@repo/ui` — atoms & molecules
 
@@ -394,53 +401,82 @@ export function TravelRecommendationWidget({ resourceType, resourceId, ... }) {
 
 ## App integration
 
-Apps are **routing shells**. They mount screens from `@repo/widgets/screens/*`, pass navigation callbacks, and (for web) host server API routes. They never compose `@repo/ui` atoms or call feature hooks for UI directly.
+Apps are **routing shells**. They mount screens from `@repo/widgets/screens/*`, pass navigation callbacks, and configure an `apiBase` for client fetch calls. They never compose `@repo/ui` atoms or call feature hooks for UI directly.
 
 ### Web (`apps/web`)
 
 ```tsx
-// apps/web/app/ai/layout.tsx — shared provider for prompt + result routes
+// apps/web/app/providers.tsx
 import { AiFlowShell } from "@repo/widgets/screens/ai-flow";
 
-export default function AiLayout({ children }) {
-  return <AiFlowShell>{children}</AiFlowShell>;
+const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL ?? "";
+
+export function AppProviders({ children }) {
+  return <AiFlowShell apiBase={apiBase}>{children}</AiFlowShell>;
 }
 
-// apps/web/app/ai/page.tsx
+// apps/web/app/page.tsx
 "use client";
 import { AiPromptScreen } from "@repo/widgets/screens/ai-flow";
 import { useRouter } from "next/navigation";
 
-export default function Page() {
+export default function Home() {
   const router = useRouter();
   return (
-    <AiPromptScreen onNavigateToResult={() => router.push("/ai/result")} />
+    <AiPromptScreen onNavigateToResult={() => router.push("/result")} />
   );
 }
 ```
 
-- Dependencies: `@repo/widgets` (not `@repo/ui` in app code)
-- Server API routes live in `apps/web/app/api/*` and import `@repo/api`
-- `ANTHROPIC_API_KEY` is server-only env
+- Deployed as a **static export** (`output: "export"`) to Firebase Hosting — no server-side API routes
+- `NEXT_PUBLIC_API_BASE_URL` points at the Firebase Function; baked in at build time
+- Use `.env.development.local` for emulator URL during `next dev` (not `.env.local`)
 
 ### Mobile (`apps/mobile`)
 
-Same screens, different router:
-
 ```tsx
-import { AiPromptScreen } from "@repo/widgets/screens/ai-flow";
-import { useRouter } from "expo-router";
+import { AiFlowShell } from "@repo/widgets/screens/ai-flow";
+import { getApiBase } from "@/constants/api";
 
-export default function AiPromptRoute() {
-  const router = useRouter();
+const API_BASE = getApiBase();
+
+export default function RootLayout() {
   return (
-    <AiPromptScreen onNavigateToResult={() => router.push("/ai/result")} />
+    <AiFlowShell apiBase={API_BASE}>
+      {/* expo-router stack */}
+    </AiFlowShell>
   );
 }
 ```
 
 - **One screen file** for both platforms — no separate mobile screen implementations
-- During dev, mobile may pass a full API URL to `AiFlowShell` (e.g. `http://localhost:3000/api/ai/layout`)
+- `EXPO_PUBLIC_API_BASE_URL` or `getApiBase()` auto-detection supplies the API origin
+
+---
+
+## Deployment
+
+```
+┌─────────────────────┐     fetch apiBase/api/*     ┌──────────────────────────┐
+│  Firebase Hosting   │ ──────────────────────────► │  Firebase Function       │
+│  (static Next.js)   │                             │  ghoomaiApi (Cloud Run)  │
+│  apps/web/out       │                             │  apps/functions          │
+└─────────────────────┘                             │  → @repo/api/router      │
+┌─────────────────────┐                             └──────────────────────────┘
+│  Expo mobile app    │ ──────────────────────────►            ▲
+└─────────────────────┘                                        │
+```
+
+| Component | Source | Deploy command |
+|-----------|--------|----------------|
+| Web | `apps/web/out` (static export) | `firebase deploy --only hosting` |
+| API | `apps/functions/lib/index.js` (esbuild bundle) | `firebase deploy --only functions` |
+
+**Functions build:** esbuild bundles `@repo/api` into a single file. Predeploy strips `@repo/*` workspace deps from `package.json` so Cloud Build can install public npm packages only.
+
+**Web env vars:** `NEXT_PUBLIC_API_BASE_URL` in `.env.production` (see `apps/web/.env.example`). Never put it in `.env.local` — that file loads during `next build` and overrides production values.
+
+**Secrets:** `ANTHROPIC_API_KEY` on the Functions runtime (`firebase functions:secrets:set`), not in the web bundle.
 
 ---
 
@@ -453,7 +489,7 @@ export default function AiPromptRoute() {
 5. **`@repo/widgets/screens/`** — add static full-page screen(s) as single cross-platform files
 6. **`@repo/hooks`** — implement context (internal) and public hooks only
 7. **`@repo/api`** — add server handlers, prompts, tools, and orchestration (when server calls are needed)
-8. **Integrate** — wire hooks inside widgets/screens; apps mount screens + pass routing props; web app adds API routes that call `@repo/api`
+8. **Integrate** — wire hooks inside widgets/screens; apps mount screens + pass routing props; add handlers to `@repo/api` router (served by `apps/functions`)
 
 ---
 
@@ -469,7 +505,7 @@ export default function AiPromptRoute() {
 
 | Export path | Contents |
 |-------------|----------|
-| `@repo/api` | `runWidgetAI`, `RunWidgetAIInput` (app API routes only) |
+| `@repo/api` | `handleApiRequest`, `runWidgetAI`, route handlers (`apps/functions` only) |
 
 ### `@repo/hooks`
 
@@ -503,6 +539,6 @@ export default function AiPromptRoute() {
 8. **Widgets compose atoms** — they do not use `react-native` or DOM primitives directly
 9. **Slots are pre-rendered** — the renderer passes `ReactNode` children; widgets just place them
 10. **Content is data** — AI or config drives `ContentItem` trees rendered by `ContentRenderer`
-11. **Server APIs** — orchestration lives in `@repo/api`; app API routes import it; secrets stay server-only
-12. **Client AI hooks** — `@repo/hooks/ai` handles client state and HTTP calls to app API routes only
+11. **Server APIs** — orchestration lives in `@repo/api`; served by `apps/functions`; secrets stay server-only
+12. **Client AI hooks** — `@repo/hooks/ai` handles client state and HTTP calls to `apiBase/api/*`
 13. **UI-only hooks stay in `@repo/ui`** — business hooks stay in `@repo/hooks`

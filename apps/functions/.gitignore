@@ -1,0 +1,7 @@
+node_modules/
+lib/
+.package.json.deploy-backup
+firebase-debug.log
+.env
+.env.*
+!.env.example

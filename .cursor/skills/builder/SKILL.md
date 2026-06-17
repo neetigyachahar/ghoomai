@@ -27,7 +27,8 @@ Strict workflow for Ghoomai frontend work. **Read [packages/widgets/ARCHITECTURE
 @repo/widgets        → @repo/types, @repo/hooks, @repo/ui
 @repo/hooks          ✗ @repo/widgets   (circular)
 @repo/hooks          ✗ @repo/api        (server logic stays server-side)
-apps                 → @repo/widgets, @repo/api (web API routes only)
+apps                 → @repo/widgets (web/mobile routing shells only)
+apps/functions       → @repo/api (Firebase Function — sole API server)
 widgets              ✗ @repo/hooks/context/*
 widgets              ✗ @repo/api
 ```
@@ -44,7 +45,7 @@ Execute in this order. Do not skip layers or put logic in the wrong package.
 - [ ] 5. @repo/widgets/widgets/ — organism widget(s); compose @repo/ui + @repo/hooks/<feature>
 - [ ] 6. registry.ts — register widget keys + AI metadata (description, props, slots)
 - [ ] 7. @repo/widgets/screens/ — full-page screen(s) as **single cross-platform .tsx files**
-- [ ] 8. Apps — mount screens, pass routing props; web API routes call @repo/api
+- [ ] 8. Apps — mount screens, pass routing props; add handlers to `@repo/api` router (`apps/functions`)
 ```
 
 ## Package patterns
@@ -63,15 +64,15 @@ Types only. No imports from other packages.
 ```
 packages/api/src/
 ├── index.ts
-├── run-widget-ai.ts
-└── internal/
-    ├── build-prompt.ts
-    └── <tool-name>.ts          # tool handlers as needed
+├── router.ts              # handleApiRequest
+├── handlers/ai-routes.ts
+├── handlers/travel-routes.ts
+├── adapters/node-http.ts
+└── run-widget-ai.ts
 ```
 
-- Server-only. AI orchestration, external API clients, and tool definitions live here.
-- App API routes import `@repo/api`; client hooks/widgets never do.
-- Add export to `packages/api/package.json` if subpaths are needed later.
+- Server-only. Bundled into `apps/functions` via esbuild.
+- Client hooks call `apiBase/api/*` via fetch — they do **not** import `@repo/api`.
 
 ### `@repo/ui`
 
@@ -125,21 +126,19 @@ packages/widgets/src/screens/<name>-screen.tsx
 
 ### Apps
 
-**Web** — thin route files only:
+**Web** — static export to Firebase Hosting; thin route files only:
 
 ```tsx
-// layout.tsx — shared provider shell if needed
-// page.tsx
-import { SomeScreen } from "@repo/widgets/screens/<name>";
-// pass useRouter navigation callbacks only
+// app/providers.tsx — pass apiBase from NEXT_PUBLIC_API_BASE_URL
+import { AiFlowShell } from "@repo/widgets/screens/ai-flow";
 
-// app/api/<feature>/route.ts — server AI only
-import { runWidgetAI } from "@repo/api";
+// app/page.tsx — mount screen, pass navigation callbacks
+import { AiPromptScreen } from "@repo/widgets/screens/<name>";
 ```
 
 **Mobile** — same screen imports; routing differs, **never duplicate screen files**.
 
-Mobile dev API: use `getAiApiEndpoint()` pattern (`10.0.2.2` for Android emulator). See `apps/mobile/src/constants/api.ts`.
+API base: `getApiBase()` in `apps/mobile/src/constants/api.ts`. Web uses `NEXT_PUBLIC_API_BASE_URL`. Both point at the Firebase Function (`apiBase/api/*`).
 
 ## Content tree rules
 
@@ -155,11 +154,12 @@ Mobile dev API: use `getAiApiEndpoint()` pattern (`10.0.2.2` for Android emulato
 | Import `@repo/hooks/context/*` from widgets | Import `@repo/hooks/<feature>` hooks |
 | Put business logic in widgets package | Put in `@repo/hooks` |
 | Put Anthropic SDK, external API clients, or tool handlers in `@repo/hooks` | Put in `@repo/api` |
-| Import `@repo/api` from hooks, widgets, or mobile | Web API routes only |
+| Import `@repo/api` from hooks, widgets, or mobile | `apps/functions` only (bundled server) |
 | Put types in hooks/widgets when shared | Put in `@repo/types` |
 | Create separate web/mobile screen files | One screen `.tsx` for both platforms |
 | Add `dark:` Tailwind variants on web | Light mode only; set `color-scheme: light` |
-| Expose API keys to client | Server route in `apps/web/app/api/*` + env |
+| Expose API keys to client | `ANTHROPIC_API_KEY` on Functions via Firebase secrets |
+| Put `NEXT_PUBLIC_*` in `apps/web/.env.local` | Use `.env.production` (build) or `.env.development.local` (dev) |
 | Import registry in `@repo/hooks` or `@repo/api` | Pass registry from widgets/screens or apps |
 
 ## Verification before finishing
