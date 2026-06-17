@@ -3,20 +3,24 @@
 import {
   createContext,
   useCallback,
+  useEffect,
   useMemo,
   useState,
   type ReactNode,
 } from "react";
 
+import { ANTHROPIC_API_KEY_HEADER } from "@repo/types";
 import type {
   AIMessage,
   AIProgressEvent,
   AIStatus,
+  AiServerConfig,
   ContentItem,
   WidgetAIMetadata,
   WidgetAIResponse,
 } from "@repo/types";
 
+import { getAiConfigEndpoint } from "../../hooks/ai/ai-endpoints";
 import { parseSseStream } from "../../hooks/ai/parse-sse-stream";
 
 export interface CallServerOptions {
@@ -26,6 +30,9 @@ export interface CallServerOptions {
 export interface AIContextValue {
   widgetRegistry: Record<string, WidgetAIMetadata>;
   apiEndpoint: string;
+  configLoading: boolean;
+  requiresClientApiKey: boolean;
+  setClientApiKey: (key: string) => void;
   status: AIStatus;
   messages: AIMessage[];
   pendingQuestion: string | null;
@@ -66,15 +73,68 @@ export function AIProvider({
     ContentItem | ContentItem[] | null
   >(null);
   const [error, setError] = useState<string | null>(null);
+  const [configLoading, setConfigLoading] = useState(true);
+  const [serverKeyConfigured, setServerKeyConfigured] = useState(true);
+  const [clientApiKey, setClientApiKeyState] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadConfig() {
+      try {
+        const response = await fetch(getAiConfigEndpoint(apiEndpoint));
+
+        if (!response.ok) {
+          throw new Error(`Config request failed (${response.status})`);
+        }
+
+        const config = (await response.json()) as AiServerConfig;
+
+        if (!cancelled) {
+          setServerKeyConfigured(config.serverKeyConfigured);
+        }
+      } catch {
+        if (!cancelled) {
+          setServerKeyConfigured(false);
+        }
+      } finally {
+        if (!cancelled) {
+          setConfigLoading(false);
+        }
+      }
+    }
+
+    void loadConfig();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [apiEndpoint]);
+
+  const setClientApiKey = useCallback((key: string) => {
+    const trimmed = key.trim();
+    setClientApiKeyState(trimmed || null);
+  }, []);
+
+  const requiresClientApiKey =
+    !configLoading && !serverKeyConfigured && clientApiKey === null;
 
   const callServer = useCallback(
     async (
       conversationMessages: AIMessage[],
       options?: CallServerOptions,
     ): Promise<WidgetAIResponse> => {
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+
+      if (!serverKeyConfigured && clientApiKey) {
+        headers[ANTHROPIC_API_KEY_HEADER] = clientApiKey;
+      }
+
       const response = await fetch(apiEndpoint, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({
           messages: conversationMessages,
           widgetRegistry,
@@ -117,7 +177,7 @@ export function AIProvider({
 
       return result;
     },
-    [apiEndpoint, widgetRegistry],
+    [apiEndpoint, clientApiKey, serverKeyConfigured, widgetRegistry],
   );
 
   const reset = useCallback(() => {
@@ -133,6 +193,9 @@ export function AIProvider({
     () => ({
       widgetRegistry,
       apiEndpoint,
+      configLoading,
+      requiresClientApiKey,
+      setClientApiKey,
       status,
       messages,
       pendingQuestion,
@@ -151,6 +214,9 @@ export function AIProvider({
     [
       widgetRegistry,
       apiEndpoint,
+      configLoading,
+      requiresClientApiKey,
+      setClientApiKey,
       status,
       messages,
       pendingQuestion,

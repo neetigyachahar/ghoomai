@@ -1,6 +1,11 @@
 export { runWidgetAI, type RunWidgetAIInput } from "./run-widget-ai";
 export { formatSseEvent } from "./internal/sse";
 export {
+  getClientApiKeyFromRequest,
+  isServerApiKeyConfigured,
+  resolveAnthropicApiKey,
+} from "./resolve-anthropic-api-key";
+export {
   GETBusById,
   GETBuses,
   GETCabById,

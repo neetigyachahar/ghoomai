@@ -9,6 +9,7 @@ export function Input({
   onChangeText,
   placeholder,
   multiline = false,
+  secureTextEntry = false,
   className,
   webStyle,
   onSubmit,
@@ -33,7 +34,7 @@ export function Input({
 
   return (
     <input
-      type="text"
+      type={secureTextEntry ? "password" : "text"}
       value={value}
       onChange={(event) => onChangeText(event.target.value)}
       placeholder={placeholder}

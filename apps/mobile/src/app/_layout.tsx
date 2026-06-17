@@ -4,10 +4,28 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { AiFlowShell } from '@repo/widgets/screens/ai-flow';
 
+import {
+  MobileKeyboardScreenShell,
+  useMobileKeyboard,
+} from '@/components/mobile-keyboard-screen-shell';
 import { getAiApiEndpoint, getWebApiBase } from '@/constants/api';
 
 const API_ENDPOINT = getAiApiEndpoint();
 const API_BASE = getWebApiBase();
+
+function AppShell() {
+  const { keyboardVisible } = useMobileKeyboard();
+
+  return (
+    <AiFlowShell
+      apiEndpoint={API_ENDPOINT}
+      apiBase={API_BASE}
+      keyboardVisible={keyboardVisible}
+    >
+      <Stack screenOptions={{ headerShown: false }} />
+    </AiFlowShell>
+  );
+}
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -15,9 +33,9 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-        <AiFlowShell apiEndpoint={API_ENDPOINT} apiBase={API_BASE}>
-          <Stack screenOptions={{ headerShown: false }} />
-        </AiFlowShell>
+        <MobileKeyboardScreenShell>
+          <AppShell />
+        </MobileKeyboardScreenShell>
       </ThemeProvider>
     </SafeAreaProvider>
   );

@@ -11,8 +11,10 @@ export type {
   AIProgressEventType,
   AIQuestion,
   AIStatus,
+  AiServerConfig,
   WidgetAIResponse,
 } from "./ai";
+export { ANTHROPIC_API_KEY_HEADER } from "./ai";
 export type {
   AccommodationType,
   BudgetTier,

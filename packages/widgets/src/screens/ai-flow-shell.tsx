@@ -10,12 +10,14 @@ import { AiProviderShell } from "./ai-provider-shell";
 export interface AiFlowShellProps {
   apiEndpoint?: string;
   apiBase?: string;
+  keyboardVisible?: boolean;
   children: ReactNode;
 }
 
 export function AiFlowShell({
   apiEndpoint,
   apiBase,
+  keyboardVisible = false,
   children,
 }: AiFlowShellProps) {
   return (
@@ -23,6 +25,7 @@ export function AiFlowShell({
       <AiProviderShell
         widgetRegistry={getWidgetRegistryForAI()}
         apiEndpoint={apiEndpoint}
+        keyboardVisible={keyboardVisible}
       >
         {children}
       </AiProviderShell>

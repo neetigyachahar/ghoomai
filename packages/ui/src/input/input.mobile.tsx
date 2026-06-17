@@ -15,6 +15,7 @@ export function Input({
   onChangeText,
   placeholder,
   multiline = false,
+  secureTextEntry = false,
   style,
   onSubmit,
 }: InputProps) {
@@ -25,6 +26,7 @@ export function Input({
         onChangeText={onChangeText}
         placeholder={placeholder}
         multiline={multiline}
+        secureTextEntry={secureTextEntry}
         style={[styles.input, multiline && styles.multiline, style as TextStyle]}
         placeholderTextColor="#a1a1aa"
         returnKeyType={multiline ? "default" : "send"}

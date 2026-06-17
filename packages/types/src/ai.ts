@@ -7,6 +7,12 @@ export type AIStatus =
   | "complete"
   | "error";
 
+export type AiServerConfig = {
+  serverKeyConfigured: boolean;
+};
+
+export const ANTHROPIC_API_KEY_HEADER = "x-anthropic-api-key";
+
 export type AIMessage = {
   role: "user" | "assistant";
   content: string;

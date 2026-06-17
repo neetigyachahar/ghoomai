@@ -1,6 +1,11 @@
 import type { AIMessage, WidgetAIMetadata } from "@repo/types";
 
-import { formatSseEvent, runWidgetAI } from "@repo/api";
+import {
+  formatSseEvent,
+  getClientApiKeyFromRequest,
+  resolveAnthropicApiKey,
+  runWidgetAI,
+} from "@repo/api";
 
 export async function POST(req: Request) {
   const body = (await req.json()) as {
@@ -8,10 +13,13 @@ export async function POST(req: Request) {
     widgetRegistry: Record<string, WidgetAIMetadata>;
   };
 
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+  const apiKey = resolveAnthropicApiKey(
+    process.env.ANTHROPIC_API_KEY,
+    getClientApiKeyFromRequest(req),
+  );
 
   if (!apiKey) {
-    return Response.json({ error: "Missing ANTHROPIC_API_KEY" }, { status: 500 });
+    return Response.json({ error: "Missing API key" }, { status: 401 });
   }
 
   const encoder = new TextEncoder();
