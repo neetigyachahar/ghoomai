@@ -92,15 +92,6 @@ export const planChoicePropsSchema = z.object({
     .transform((options) => options.slice(0, 2)),
 });
 
-export const demoSectionPropsSchema = z.object({
-  title: z.string().min(1),
-});
-
-export const demoActionPropsSchema = z.object({
-  label: z.string().min(1),
-  action: z.enum(["book", "info"]).optional(),
-});
-
 export function formatZodIssues(error: z.ZodError): string {
   return error.issues
     .map((issue) => {
@@ -166,31 +157,6 @@ export function buildContentItemSchema(widgetKeys: string[]) {
           children: z
             .record(z.string(), z.array(contentItemSchema).min(1))
             .nullable(),
-        }),
-      );
-    }
-
-    if (widgetKeys.includes("demo-section")) {
-      variants.push(
-        z.object({
-          key: z.literal("demo-section"),
-          props: demoSectionPropsSchema,
-          children: z
-            .object({
-              children: z.array(contentItemSchema).optional(),
-              footer: z.array(contentItemSchema).optional(),
-            })
-            .nullable(),
-        }),
-      );
-    }
-
-    if (widgetKeys.includes("demo-action")) {
-      variants.push(
-        z.object({
-          key: z.literal("demo-action"),
-          props: demoActionPropsSchema,
-          children: z.null(),
         }),
       );
     }

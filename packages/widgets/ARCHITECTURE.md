@@ -169,12 +169,13 @@ flowchart LR
 packages/hooks/src/
 ├── index.ts
 ├── context/                    # internal — not exported via package.json
-│   └── demo/
-│       └── demo-booking-context.tsx
+│   └── ai/
+│       └── ai-context.tsx
 └── hooks/                      # public API per feature
-    └── demo/
+    └── ai/
         ├── index.ts              # exports provider + hooks
-        └── use-demo-booking.ts   # wraps context internally
+        ├── use-ai.ts
+        └── use-generated-layout.ts
 ```
 
 **Public exports** (`packages/hooks/package.json`):
@@ -183,7 +184,8 @@ packages/hooks/src/
 {
   "exports": {
     ".": "./src/index.ts",
-    "./demo": "./src/hooks/demo/index.ts"
+    "./ai": "./src/hooks/ai/index.ts",
+    "./travel": "./src/hooks/travel/index.ts"
   }
 }
 ```
@@ -191,7 +193,7 @@ packages/hooks/src/
 The `context/` folder is deliberately **absent from exports**. Consumers import:
 
 ```ts
-import { DemoBookingProvider, useDemoBooking } from "@repo/hooks/demo";
+import { AIProvider, useAi } from "@repo/hooks/ai";
 ```
 
 **Context isolation rule:**
@@ -205,24 +207,24 @@ import { DemoBookingProvider, useDemoBooking } from "@repo/hooks/demo";
 ```mermaid
 flowchart TB
   subgraph publicAPI [Public API]
-    Provider[DemoBookingProvider]
-    Hook[useDemoBooking]
+    Provider[AIProvider]
+    Hook[useAi]
   end
 
   subgraph internal [Internal — context/]
-    Ctx[DemoBookingContext]
+    Ctx[AIContext]
     State[useState / useCallback]
   end
 
   subgraph consumers [Consumers]
     App[apps/web, apps/mobile]
-    Widget[demo-action widget]
+    Screen[AiPromptScreen]
   end
 
   App --> Provider
   Provider --> Ctx
   Ctx --> State
-  Widget --> Hook
+  Screen --> Hook
   Hook --> Ctx
 ```
 
@@ -242,8 +244,9 @@ packages/widgets/src/
 ├── renderer.tsx
 ├── index.ts
 ├── widgets/
-│   ├── demo-section.tsx
-│   └── demo-action.tsx
+│   ├── trip-header.tsx
+│   ├── travel-recommendation.tsx
+│   └── plan-choice.tsx
 └── screens/              # static full-page layouts (single file, all platforms)
     ├── ai-prompt-screen.tsx
     ├── ai-result-screen.tsx
@@ -262,15 +265,17 @@ Every widget is registered by a unique string key in `widgetRegistry`:
 
 ```ts
 export const widgetRegistry: Record<string, WidgetComponent> = {
-  "demo-section": DemoSectionWidget,
-  "demo-action": DemoActionWidget,
+  "trip-header": TripHeaderWidget,
+  "travel-recommendation": TravelRecommendationWidget,
+  "plan-choice": PlanChoiceWidget,
 };
 ```
 
 | Key | Widget | Role |
 |-----|--------|------|
-| `demo-section` | `DemoSectionWidget` | Organism — card layout with title and named slots |
-| `demo-action` | `DemoActionWidget` | Organism — action button driven by `useDemoBooking` |
+| `trip-header` | `TripHeaderWidget` | Page header with trip title and stats |
+| `travel-recommendation` | `TravelRecommendationWidget` | Timeline step with a travel offer |
+| `plan-choice` | `PlanChoiceWidget` | Mutually exclusive pick-one step |
 
 To add a new widget:
 
@@ -289,7 +294,7 @@ Apps (or a CMS/API) pass a **declarative content object** describing the widget 
 
 ```ts
 interface ContentItem {
-  key: string;                        // widget ID, e.g. "demo-section"
+  key: string;                        // widget ID, e.g. "trip-header"
   props: Record<string, unknown>;     // data props for the widget
   children: ContentChildren | null;   // named slots, or null
 }
@@ -299,47 +304,41 @@ type ContentChildren = {
 };
 ```
 
-### Example tree (with hook-driven props)
+### Example tree
 
 ```ts
-const content: ContentItem = {
-  key: "demo-section",
-  props: { title: "Ghoomai Widgets" },
-  children: {
-    children: [
-      {
-        key: "demo-action",
-        props: { label: "Book a hotel", action: "book" },
-        children: null,
-      },
-    ],
-    footer: [
-      {
-        key: "demo-action",
-        props: { label: "Learn more", action: "info" },
-        children: null,
-      },
-    ],
+const content: ContentItem[] = [
+  {
+    key: "trip-header",
+    props: {
+      title: "Delhi to Manali",
+      stats: [
+        { label: "Dates", value: "Jun 20–22" },
+        { label: "Travelers", value: "2" },
+      ],
+    },
+    children: null,
   },
-};
+  {
+    key: "travel-recommendation",
+    props: {
+      dayLabel: "Day 1",
+      resourceType: "bus",
+      resourceId: "bus-del-man-1",
+      sectionTitle: "Getting there",
+      stepTime: "Fri 9:00 PM – Sat 7:30 AM",
+    },
+    children: null,
+  },
+];
 ```
-
-The `action: "book"` prop tells `DemoActionWidget` to call `bookHotel()` from `useDemoBooking` and display the live booking count.
 
 ```mermaid
 flowchart TB
-  Root["demo-section<br/>title: Ghoomai Widgets"]
+  Header["trip-header<br/>Delhi to Manali"]
+  Step["travel-recommendation<br/>Getting there"]
 
-  subgraph childrenSlot [slot: children]
-    Action1["demo-action<br/>action: book"]
-  end
-
-  subgraph footerSlot [slot: footer]
-    Action2["demo-action<br/>action: info"]
-  end
-
-  Root --> childrenSlot
-  Root --> footerSlot
+  Header --> Step
 ```
 
 ### Rendering flow
@@ -347,17 +346,17 @@ flowchart TB
 ```mermaid
 sequenceDiagram
   participant App
-  participant Provider as DemoBookingProvider
+  participant Provider as AIProvider
   participant Renderer as ContentRenderer
-  participant Widget as DemoActionWidget
-  participant Hook as useDemoBooking
+  participant Widget as TravelRecommendationWidget
+  participant Hook as useTravelResource
 
-  App->>Provider: wrap content tree
+  App->>Provider: wrap AI flow
   App->>Renderer: content (ContentItem tree)
   Renderer->>Widget: props + rendered slot ReactNodes
-  Widget->>Hook: read bookingCount, bookHotel
-  Hook-->>Widget: state + actions
-  Widget-->>App: interactive UI
+  Widget->>Hook: load offer by resourceId
+  Hook-->>Widget: offer data
+  Widget-->>App: rendered UI
 ```
 
 **Key rules:**
@@ -372,12 +371,12 @@ sequenceDiagram
 Widget files are written **once**. They import from `@repo/ui/*` for presentation and `@repo/hooks/<feature>` for logic.
 
 ```tsx
-// packages/widgets/src/widgets/demo-action.tsx
-import { useDemoBooking } from "@repo/hooks/demo";
-import { Button } from "@repo/ui/button";
+// packages/widgets/src/widgets/travel-recommendation.tsx
+import { useTravelResource } from "@repo/hooks/travel";
+import { TravelBusOffer } from "@repo/ui/travel-bus-offer";
 
-export function DemoActionWidget({ label, action = "info" }) {
-  const { bookingCount, bookHotel } = useDemoBooking();
+export function TravelRecommendationWidget({ resourceType, resourceId, ... }) {
+  const { data } = useTravelResource(resourceType, resourceId);
   // ...
 }
 ```
@@ -443,33 +442,6 @@ export default function AiPromptRoute() {
 - **One screen file** for both platforms — no separate mobile screen implementations
 - During dev, mobile may pass a full API URL to `AiFlowShell` (e.g. `http://localhost:3000/api/ai/layout`)
 
-### Legacy demo note
-
-`apps/web/app/demo-widget.tsx` composes `ContentRenderer` directly — **legacy demo only**. New features use screens in `@repo/widgets`.
-
-```mermaid
-flowchart LR
-  subgraph webApp [apps/web]
-    WebDemo[demo-widget.tsx]
-  end
-
-  subgraph mobileApp [apps/mobile]
-    MobileHome[index.tsx]
-  end
-
-  subgraph hooks ["@repo/hooks"]
-    DBP[DemoBookingProvider]
-  end
-
-  subgraph widgets ["@repo/widgets"]
-    CR[ContentRenderer]
-  end
-
-  WebDemo --> DBP
-  MobileHome --> DBP
-  DBP --> CR
-```
-
 ---
 
 ## Adding a new feature (checklist)
@@ -503,9 +475,9 @@ flowchart LR
 
 | Export path | Contents |
 |-------------|----------|
-| `@repo/hooks` | All public providers and hooks (re-exported) |
-| `@repo/hooks/demo` | `DemoBookingProvider`, `useDemoBooking` |
+| `@repo/hooks` | `AIProvider`, `useAi`, `useGeneratedLayout` |
 | `@repo/hooks/ai` | `AIProvider`, `useAi`, `useGeneratedLayout` |
+| `@repo/hooks/travel` | `useTravelResource` |
 
 ### `@repo/widgets`
 

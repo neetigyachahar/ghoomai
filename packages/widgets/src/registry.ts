@@ -4,8 +4,6 @@ import type {
   WidgetRegistryEntry,
 } from "./types";
 import { ContentBlockWidget } from "./widgets/content-block";
-import { DemoActionWidget } from "./widgets/demo-action";
-import { DemoSectionWidget } from "./widgets/demo-section";
 import { PlanChoiceWidget } from "./widgets/plan-choice";
 import {
   TravelOfferWidget,
@@ -166,46 +164,6 @@ const widgetDefinitions = {
         description:
           "Named slot matching an option id. Place the full widget subtree for that choice (e.g. travel-recommendation). Rendered only after the user selects this option.",
         required: true,
-      },
-    },
-  },
-  "demo-section": {
-    component: DemoSectionWidget as unknown as WidgetComponent,
-    description:
-      "Legacy card-style section. Prefer content-block + travel-recommendation for trip results.",
-    props: {
-      title: {
-        type: "string",
-        required: true,
-        description: "Heading displayed at the top of the section.",
-      },
-    },
-    slots: {
-      children: {
-        description: "Primary content rendered below the title.",
-      },
-      footer: {
-        description: "Secondary content rendered at the bottom of the section.",
-      },
-    },
-  },
-  "demo-action": {
-    component: DemoActionWidget as unknown as WidgetComponent,
-    description:
-      "Interactive action button. Booking actions use shared booking state via hooks.",
-    props: {
-      label: {
-        type: "string",
-        required: true,
-        description: "Button label text.",
-      },
-      action: {
-        type: "string",
-        required: false,
-        description:
-          "Controls button behaviour. Use 'book' for booking actions that update booking count.",
-        enum: ["book", "info"],
-        default: "info",
       },
     },
   },

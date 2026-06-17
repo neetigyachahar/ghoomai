@@ -32,15 +32,16 @@
   },
   "devDependencies": {
     "@types/react": "~19.2.2",
+    "eslint": "^9.39.1",
+    "eslint-config-expo": "~56.0.4",
     "typescript": "~6.0.3"
   },
   "scripts": {
     "start": "expo start",
-    "reset-project": "node ./scripts/reset-project.js",
-    "dev": "expo start --android",
+    "dev": "expo start",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "lint": "expo lint"
+    "lint": "eslint . --max-warnings 0"
   },
   "private": true
 }

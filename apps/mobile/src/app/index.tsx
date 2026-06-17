@@ -1,6 +1,6 @@
 import { AiPromptScreen } from '@repo/widgets/screens/ai-flow';
 import { useRouter } from 'expo-router';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Keyboard,
   KeyboardAvoidingView,
@@ -35,15 +35,15 @@ export default function HomeScreen() {
   const [keyboardVisible, setKeyboardVisible] = useState(false);
   const [keyboardOffset, setKeyboardOffset] = useState(0);
 
-  const measureKeyboardOffset = (event: KeyboardEvent) => {
+  const measureKeyboardOffset = useCallback((event: KeyboardEvent) => {
     contentRef.current?.measureInWindow((_x, y, _width, height) => {
       const viewBottom = y + height;
       const nextOffset = getKeyboardLift(viewBottom, event);
       setKeyboardOffset((current) => Math.max(current, nextOffset));
     });
-  };
+  }, []);
 
-  const scheduleMeasurements = (event: KeyboardEvent) => {
+  const scheduleMeasurements = useCallback((event: KeyboardEvent) => {
     keyboardEventRef.current = event;
     measureTimersRef.current.forEach(clearTimeout);
     measureTimersRef.current = [];
@@ -56,7 +56,7 @@ export default function HomeScreen() {
       }, delay);
       measureTimersRef.current.push(timer);
     });
-  };
+  }, [measureKeyboardOffset]);
 
   useEffect(() => {
     const showEvent =
@@ -82,7 +82,7 @@ export default function HomeScreen() {
       hideSub.remove();
       measureTimersRef.current.forEach(clearTimeout);
     };
-  }, []);
+  }, [scheduleMeasurements]);
 
   const contentPaddingBottom =
     Platform.OS === 'android'

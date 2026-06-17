@@ -17,10 +17,7 @@ import { sanitizeQuestionResponse } from "./internal/sanitize-question-response"
 import { sanitizeLayoutResponse } from "./internal/validate-layout-response";
 import { createTravelTools } from "./tools/travel-tools";
 
-// Demo / production — swap back for real demos
 const ANTHROPIC_MODEL = "claude-sonnet-4-6";
-// Dev — cheaper for local iteration
-// const ANTHROPIC_MODEL = "claude-haiku-4-5";
 const MAX_TOOL_ITERATIONS = 12;
 
 const QUESTION_OUTPUT_FORMAT = zodOutputFormat(questionResponseSchema);

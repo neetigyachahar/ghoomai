@@ -4,7 +4,6 @@
   "private": true,
   "exports": {
     ".": "./src/index.ts",
-    "./demo": "./src/hooks/demo/index.ts",
     "./ai": "./src/hooks/ai/index.ts",
     "./travel": "./src/hooks/travel/index.ts"
   },

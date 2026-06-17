@@ -2,7 +2,6 @@
 
 import { useEffect, type ReactNode } from "react";
 
-import { DemoBookingProvider } from "@repo/hooks/demo";
 import { useGeneratedLayout } from "@repo/hooks/ai";
 import { Box } from "@repo/ui/box";
 import { ScrollBox } from "@repo/ui/scroll-box";
@@ -46,7 +45,7 @@ export function AiResultScreen({ onNavigateBack }: AiResultScreenProps = {}) {
     return null;
   }
 
-  const shell = (
+  return (
     <Box
       className="flex w-full flex-col"
       style={{
@@ -67,6 +66,4 @@ export function AiResultScreen({ onNavigateBack }: AiResultScreenProps = {}) {
       </ScrollBox>
     </Box>
   );
-
-  return <DemoBookingProvider>{shell}</DemoBookingProvider>;
 }

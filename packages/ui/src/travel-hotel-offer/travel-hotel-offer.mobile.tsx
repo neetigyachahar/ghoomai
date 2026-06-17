@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, type StyleProp, type ViewStyle } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 
 import type { Hotel } from "@repo/types";
 

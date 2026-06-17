@@ -1,7 +1,5 @@
 "use client";
 
-import type { ViewStyle } from "react-native";
-
 import { useTravelResource } from "@repo/hooks/travel";
 import type {
   Bus,

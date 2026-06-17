@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, type StyleProp, type ViewStyle } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 
 import { colors } from "../theme/colors";
 import { TravelOfferLayout } from "../travel-offer-layout/travel-offer-layout.mobile";

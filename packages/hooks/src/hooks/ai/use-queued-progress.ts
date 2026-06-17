@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import type { AIProgressEvent } from "@repo/types";
 
@@ -25,7 +25,7 @@ export function useQueuedProgress(
     }
   };
 
-  const scheduleNext = () => {
+  const scheduleNext = useCallback(() => {
     clearTimer();
 
     if (queueRef.current.length === 0) {
@@ -44,7 +44,7 @@ export function useQueuedProgress(
     timerRef.current = setTimeout(() => {
       scheduleNext();
     }, MIN_DISPLAY_MS);
-  };
+  }, [active]);
 
   useEffect(() => {
     if (tick === 0 || tick === lastTickRef.current || !latestEvent) {
@@ -66,7 +66,7 @@ export function useQueuedProgress(
     timerRef.current = setTimeout(() => {
       scheduleNext();
     }, remaining);
-  }, [tick, latestEvent]);
+  }, [tick, latestEvent, scheduleNext]);
 
   useEffect(() => {
     if (active) {

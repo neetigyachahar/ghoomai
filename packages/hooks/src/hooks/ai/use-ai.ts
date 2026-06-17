@@ -112,7 +112,7 @@ export function useAi(options: UseAiOptions = {}) {
         setStatus("error");
       }
     },
-    [handleResponse, setError, setMessages, setStatus, status],
+    [handleResponse, setError, setMessages, setPendingOptions, setPendingQuestion, setStatus, status],
   );
 
   const onAnswerQuestion = useCallback(
@@ -140,7 +140,7 @@ export function useAi(options: UseAiOptions = {}) {
         setStatus("error");
       }
     },
-    [handleResponse, messages, setError, setMessages, setStatus, status],
+    [handleResponse, messages, setError, setMessages, setPendingOptions, setPendingQuestion, setStatus, status],
   );
 
   return {
