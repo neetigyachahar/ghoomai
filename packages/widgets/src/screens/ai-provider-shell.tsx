@@ -8,20 +8,20 @@ import type { WidgetAIMetadata } from "@repo/types";
 import { AiKeyGate } from "./ai-key-gate";
 
 export interface AiProviderShellProps {
-  apiEndpoint?: string;
+  apiBase?: string;
   widgetRegistry: Record<string, WidgetAIMetadata>;
   keyboardVisible?: boolean;
   children: ReactNode;
 }
 
 export function AiProviderShell({
-  apiEndpoint,
+  apiBase,
   widgetRegistry,
   keyboardVisible = false,
   children,
 }: AiProviderShellProps) {
   return (
-    <AIProvider widgetRegistry={widgetRegistry} apiEndpoint={apiEndpoint}>
+    <AIProvider widgetRegistry={widgetRegistry} apiBase={apiBase}>
       <AiKeyGate keyboardVisible={keyboardVisible}>{children}</AiKeyGate>
     </AIProvider>
   );

@@ -20,7 +20,10 @@ import type {
   WidgetAIResponse,
 } from "@repo/types";
 
-import { getAiConfigEndpoint } from "../../hooks/ai/ai-endpoints";
+import {
+  getAiConfigEndpoint,
+  getAiLayoutEndpoint,
+} from "../../hooks/ai/api-endpoints";
 import { parseSseStream } from "../../hooks/ai/parse-sse-stream";
 
 export interface CallServerOptions {
@@ -29,7 +32,7 @@ export interface CallServerOptions {
 
 export interface AIContextValue {
   widgetRegistry: Record<string, WidgetAIMetadata>;
-  apiEndpoint: string;
+  apiBase: string;
   configLoading: boolean;
   requiresClientApiKey: boolean;
   setClientApiKey: (key: string) => void;
@@ -56,13 +59,13 @@ export const AIContext = createContext<AIContextValue | null>(null);
 
 export interface AIProviderProps {
   widgetRegistry: Record<string, WidgetAIMetadata>;
-  apiEndpoint?: string;
+  apiBase?: string;
   children: ReactNode;
 }
 
 export function AIProvider({
   widgetRegistry,
-  apiEndpoint = "/api/ai/layout",
+  apiBase = "",
   children,
 }: AIProviderProps) {
   const [status, setStatus] = useState<AIStatus>("idle");
@@ -76,13 +79,15 @@ export function AIProvider({
   const [configLoading, setConfigLoading] = useState(true);
   const [serverKeyConfigured, setServerKeyConfigured] = useState(true);
   const [clientApiKey, setClientApiKeyState] = useState<string | null>(null);
+  const layoutEndpoint = getAiLayoutEndpoint(apiBase);
+  const configEndpoint = getAiConfigEndpoint(apiBase);
 
   useEffect(() => {
     let cancelled = false;
 
     async function loadConfig() {
       try {
-        const response = await fetch(getAiConfigEndpoint(apiEndpoint));
+        const response = await fetch(configEndpoint);
 
         if (!response.ok) {
           throw new Error(`Config request failed (${response.status})`);
@@ -109,7 +114,7 @@ export function AIProvider({
     return () => {
       cancelled = true;
     };
-  }, [apiEndpoint]);
+  }, [configEndpoint]);
 
   const setClientApiKey = useCallback((key: string) => {
     const trimmed = key.trim();
@@ -132,7 +137,7 @@ export function AIProvider({
         headers[ANTHROPIC_API_KEY_HEADER] = clientApiKey;
       }
 
-      const response = await fetch(apiEndpoint, {
+      const response = await fetch(layoutEndpoint, {
         method: "POST",
         headers,
         body: JSON.stringify({
@@ -177,7 +182,7 @@ export function AIProvider({
 
       return result;
     },
-    [apiEndpoint, clientApiKey, serverKeyConfigured, widgetRegistry],
+    [layoutEndpoint, clientApiKey, serverKeyConfigured, widgetRegistry],
   );
 
   const reset = useCallback(() => {
@@ -192,7 +197,7 @@ export function AIProvider({
   const value = useMemo(
     () => ({
       widgetRegistry,
-      apiEndpoint,
+      apiBase,
       configLoading,
       requiresClientApiKey,
       setClientApiKey,
@@ -213,7 +218,7 @@ export function AIProvider({
     }),
     [
       widgetRegistry,
-      apiEndpoint,
+      apiBase,
       configLoading,
       requiresClientApiKey,
       setClientApiKey,

@@ -11,6 +11,8 @@ import {
 
 import type { TravelResource, TravelResourceType } from "@repo/types";
 
+import { getTravelResourceEndpoint } from "../ai/api-endpoints";
+
 export interface TravelDataContextValue {
   apiBase: string;
 }
@@ -71,7 +73,7 @@ export function useTravelResource(
 
       try {
         const response = await fetch(
-          `${apiBase}/api/travel/resource/${resourceType}/${resourceId}`,
+          getTravelResourceEndpoint(apiBase, resourceType, resourceId),
         );
 
         if (!response.ok) {

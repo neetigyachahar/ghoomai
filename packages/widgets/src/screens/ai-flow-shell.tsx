@@ -8,14 +8,12 @@ import { getWidgetRegistryForAI } from "../registry";
 import { AiProviderShell } from "./ai-provider-shell";
 
 export interface AiFlowShellProps {
-  apiEndpoint?: string;
   apiBase?: string;
   keyboardVisible?: boolean;
   children: ReactNode;
 }
 
 export function AiFlowShell({
-  apiEndpoint,
   apiBase,
   keyboardVisible = false,
   children,
@@ -24,7 +22,7 @@ export function AiFlowShell({
     <TravelDataProvider apiBase={apiBase}>
       <AiProviderShell
         widgetRegistry={getWidgetRegistryForAI()}
-        apiEndpoint={apiEndpoint}
+        apiBase={apiBase}
         keyboardVisible={keyboardVisible}
       >
         {children}

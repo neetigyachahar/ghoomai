@@ -8,20 +8,15 @@ import {
   MobileKeyboardScreenShell,
   useMobileKeyboard,
 } from '@/components/mobile-keyboard-screen-shell';
-import { getAiApiEndpoint, getWebApiBase } from '@/constants/api';
+import { getApiBase } from '@/constants/api';
 
-const API_ENDPOINT = getAiApiEndpoint();
-const API_BASE = getWebApiBase();
+const API_BASE = getApiBase();
 
 function AppShell() {
   const { keyboardVisible } = useMobileKeyboard();
 
   return (
-    <AiFlowShell
-      apiEndpoint={API_ENDPOINT}
-      apiBase={API_BASE}
-      keyboardVisible={keyboardVisible}
-    >
+    <AiFlowShell apiBase={API_BASE} keyboardVisible={keyboardVisible}>
       <Stack screenOptions={{ headerShown: false }} />
     </AiFlowShell>
   );
