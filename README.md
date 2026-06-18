@@ -1,8 +1,8 @@
 # GhoomAI
 
-AI-powered trip planner built as a React Universal monorepo. Describe a trip in natural language and get a structured screen — headers, timelines, transport offers, hotel choices, activity options — rendered from a shared widget codebase on **web** (Next.js) and **mobile** (Expo).
+AI-powered trip planner built as a React Universal monorepo. Describe a trip in natural language and get a structured screen — headers, timelines, transport offers, hotel choices, activity options — rendered from a shared widget codebase on **web** (Next.js) and **mobile** (Expo). Shared UI and business logic live in `packages/`; platform apps are thin routing shells.
 
-Shared UI and business logic live in `packages/`; platform apps are thin routing shells.
+![GhoomAI — AI trip planner with generative layouts](assets/mockups.png)
 
 ## How it works
 
@@ -144,6 +144,7 @@ Architecture diagrams used in the blog and this README live in [`assets/`](asset
 
 | File | Description |
 |------|-------------|
+| `mockups.png` | App flow — prompt, clarifying questions, generated trip layout |
 | `ghoomai.drawio.png` | React Universal monorepo layers |
 | `ghoomai-json.png` | Server-driven UI / JSON content tree |
 | `ghoomai-ai.png` | AI orchestrator and generative layouts |
