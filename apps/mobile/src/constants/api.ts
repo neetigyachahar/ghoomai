@@ -45,9 +45,10 @@ function getDevLocalApiBase(): string {
 export function getApiBase(): string {
   const configured = process.env.EXPO_PUBLIC_API_BASE_URL?.replace(/\/$/, '');
 
+
   if (configured) {
     return configured;
   }
 
-  return getDevLocalApiBase();
+  return `${getDevLocalApiBase()}/ghoomai/us-central1/ghoomaiApi`;
 }

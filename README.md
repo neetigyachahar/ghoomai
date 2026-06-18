@@ -4,6 +4,8 @@ AI-powered trip planner built as a React Universal monorepo. Describe a trip in 
 
 ![GhoomAI — AI trip planner with generative layouts](assets/mockups.png)
 
+**[Watch demo on X](https://x.com/neetigya_chahar/status/2067504176771616963)**
+
 ## How it works
 
 GhoomAI combines three ideas:
