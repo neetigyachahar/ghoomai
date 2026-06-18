@@ -5,18 +5,26 @@ import type { OptionChipProps } from "./option-chip.types";
 
 export type { OptionChipProps } from "./option-chip.types";
 
-export function OptionChip({ label, onPress, disabled = false }: OptionChipProps) {
+export function OptionChip({
+  label,
+  onPress,
+  disabled = false,
+  fullWidth = false,
+}: OptionChipProps) {
   return (
     <Pressable
       onPress={onPress}
       disabled={disabled}
       style={({ pressed }) => [
         styles.chip,
+        fullWidth && styles.chipFullWidth,
         pressed && styles.pressed,
         disabled && styles.disabled,
       ]}
     >
-      <Text style={styles.label}>{label}</Text>
+      <Text style={[styles.label, fullWidth && styles.labelFullWidth]}>
+        {label}
+      </Text>
     </Pressable>
   );
 }
@@ -30,6 +38,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 10,
   },
+  chipFullWidth: {
+    width: "100%",
+    borderRadius: 12,
+  },
   pressed: {
     backgroundColor: colors.bgAccentSoft,
     borderColor: colors.borderFocus,
@@ -42,5 +54,8 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: "500",
     color: colors.textPrimary,
+  },
+  labelFullWidth: {
+    lineHeight: 20,
   },
 });

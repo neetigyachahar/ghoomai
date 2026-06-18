@@ -7,6 +7,7 @@ import { AiProgressStrip } from "@repo/ui/ai-progress-strip";
 import { Box } from "@repo/ui/box";
 import { BrandMark } from "@repo/ui/brand-mark";
 import { PromptBar } from "@repo/ui/prompt-bar";
+import { PromptSuggestions } from "@repo/ui/prompt-suggestions";
 import { QuestionSheet } from "@repo/ui/question-sheet";
 import { Text } from "@repo/ui/text";
 import { colors } from "@repo/ui/theme";
@@ -15,6 +16,12 @@ export interface AiPromptScreenProps {
   onNavigateToResult?: () => void;
   keyboardVisible?: boolean;
 }
+
+const STARTER_PROMPTS = [
+  "I want a trip to Manali.",
+  "List all ways to travel to Manali from Delhi this weekend.",
+  "What are the top places to cover in Manali?",
+] as const;
 
 export function AiPromptScreen({
   onNavigateToResult,
@@ -34,6 +41,10 @@ export function AiPromptScreen({
 
   const showQuestionSheet = Boolean(pendingQuestion);
   const showIntegratedComposer = isLoading && Boolean(displayProgress);
+  const showStarterPrompts =
+    !showQuestionSheet &&
+    !showIntegratedComposer &&
+    !promptInput.trim();
 
   const handlePromptSubmit = () => {
     const trimmed = promptInput.trim();
@@ -114,7 +125,16 @@ export function AiPromptScreen({
             {promptBar}
           </Box>
         ) : (
-          promptBar
+          <>
+            {showStarterPrompts ? (
+              <PromptSuggestions
+                suggestions={[...STARTER_PROMPTS]}
+                onSelect={setPromptInput}
+                disabled={isLoading}
+              />
+            ) : null}
+            {promptBar}
+          </>
         )
       ) : null}
 

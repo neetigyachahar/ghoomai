@@ -81,6 +81,18 @@ firebase deploy --only functions  # API → Cloud Run
 
 Hosting predeploy runs `next build` (static export to `apps/web/out`). Functions predeploy bundles `@repo/api` via esbuild and strips workspace deps from `package.json` for Cloud Build.
 
+### Mobile demo (EAS)
+
+Share an installable preview APK without app stores. See `apps/mobile/README.md`.
+
+```bash
+cd apps/mobile
+bun run build:preview          # internal Android APK
+bun run update:preview -- "msg"  # OTA update after install
+```
+
+Project: [expo.dev/accounts/neetigyachahar/projects/ghoomai](https://expo.dev/accounts/neetigyachahar/projects/ghoomai)
+
 ## Scripts
 
 ```bash

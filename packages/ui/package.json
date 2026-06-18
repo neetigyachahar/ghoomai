@@ -45,6 +45,11 @@
       "types": "./src/prompt-bar/prompt-bar.web.tsx",
       "default": "./src/prompt-bar/prompt-bar.web.tsx"
     },
+    "./prompt-suggestions": {
+      "react-native": "./src/prompt-suggestions/prompt-suggestions.mobile.tsx",
+      "types": "./src/prompt-suggestions/prompt-suggestions.web.tsx",
+      "default": "./src/prompt-suggestions/prompt-suggestions.web.tsx"
+    },
     "./ai-progress-strip": {
       "react-native": "./src/ai-progress-strip/ai-progress-strip.mobile.tsx",
       "types": "./src/ai-progress-strip/ai-progress-strip.web.tsx",
